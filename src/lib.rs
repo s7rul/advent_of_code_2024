@@ -4,7 +4,7 @@ pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
 
-pub fn read_input_file(path : &str) -> String {
+pub fn read_input_file(path: &str) -> String {
     fs::read_to_string(path).unwrap()
 }
 
@@ -18,7 +18,10 @@ pub fn read_input_to_vec(path: &str) -> Vec<String> {
 }
 
 pub fn read_input_to_vec_str<'a>(path: &'a str) -> Vec<String> {
-    read_input_file(path).lines().map(|x| x.to_owned()).collect()
+    read_input_file(path)
+        .lines()
+        .map(|x| x.to_owned())
+        .collect()
 }
 
 pub fn string_to_line_vec(input: String) -> Vec<String> {
