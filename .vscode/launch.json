@@ -1,0 +1,156 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in library 'advent_of_code_2022'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--lib",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "advent_of_code_2022",
+                    "kind": "lib"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day_2'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day_2",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_2",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day_2'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day_2",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_2",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day_3'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day_3",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_3",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day_8'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day_8",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_8",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day_3'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day_3",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_3",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug example 'day_1'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--example=day_1",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_1",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in example 'day_1'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--example=day_1",
+                    "--package=advent_of_code_2022"
+                ],
+                "filter": {
+                    "name": "day_1",
+                    "kind": "example"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}
