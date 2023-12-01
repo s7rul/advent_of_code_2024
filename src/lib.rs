@@ -1,7 +1,5 @@
 use std::fs;
 
-pub mod com_device;
-
 pub fn add(left: usize, right: usize) -> usize {
     left + right
 }
