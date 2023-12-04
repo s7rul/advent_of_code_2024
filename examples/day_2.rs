@@ -61,7 +61,7 @@ fn calculate_min_powers_sum(games: &Vec<Game>) -> u32 {
         .iter()
         .map(|game| {
             let (r, g, b) = find_min_cubes(game);
-        r * g * b
+            r * g * b
         })
         .sum()
 }
