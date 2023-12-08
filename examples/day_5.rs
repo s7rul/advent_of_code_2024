@@ -36,9 +36,11 @@ fn main() {
         done_processing.clear();
     }
 
-    let result = to_process.iter().map(|range| {
-        range.get_min()
-    }).min().unwrap();
+    let result = to_process
+        .iter()
+        .map(|range| range.get_min())
+        .min()
+        .unwrap();
     println!("Part 2: {result}");
 }
 
@@ -188,19 +190,46 @@ impl Mapping {
 
     fn get_new_ranges(&self, input: SeedRange) -> (Option<SeedRange>, Vec<SeedRange>) {
         if self.contains(input.start) && self.contains(input.end - 1) {
-            (Some(SeedRange { start: input.start + self.modifier, end: input.end + self.modifier }), vec![])
+            (
+                Some(SeedRange {
+                    start: input.start + self.modifier,
+                    end: input.end + self.modifier,
+                }),
+                vec![],
+            )
         } else if self.contains(input.start) {
-            let new_inside = SeedRange { start: input.start + self.modifier, end: self.end + self.modifier};
-            let new_outside = SeedRange {start: self.end, end: input.end};
+            let new_inside = SeedRange {
+                start: input.start + self.modifier,
+                end: self.end + self.modifier,
+            };
+            let new_outside = SeedRange {
+                start: self.end,
+                end: input.end,
+            };
             (Some(new_inside), vec![new_outside])
         } else if self.contains(input.end - 1) {
-            let new_inside = SeedRange { start: self.start + self.modifier, end: input.end + self.modifier};
-            let new_outside = SeedRange {start: input.start, end: self.start};
+            let new_inside = SeedRange {
+                start: self.start + self.modifier,
+                end: input.end + self.modifier,
+            };
+            let new_outside = SeedRange {
+                start: input.start,
+                end: self.start,
+            };
             (Some(new_inside), vec![new_outside])
         } else if input.start < self.start && input.end > self.end {
-            let new_inside = SeedRange {start: self.start + self.modifier, end: self.end + self.modifier};
-            let new_outside_right = SeedRange {start: self.end, end: input.end};
-            let new_outside_left = SeedRange {start: input.start, end: self.start};
+            let new_inside = SeedRange {
+                start: self.start + self.modifier,
+                end: self.end + self.modifier,
+            };
+            let new_outside_right = SeedRange {
+                start: self.end,
+                end: input.end,
+            };
+            let new_outside_left = SeedRange {
+                start: input.start,
+                end: self.start,
+            };
             (Some(new_inside), vec![new_outside_right, new_outside_left])
         } else {
             (None, vec![input])

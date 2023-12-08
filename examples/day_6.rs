@@ -22,23 +22,47 @@ fn main() {
 }
 
 fn parse(input: &Vec<String>) -> (Vec<u64>, Vec<u64>) {
-    let times = input[0].split_once(':').unwrap().1.trim().split_whitespace().map(|v| {
-        v.parse().unwrap()
-    }).collect();
-    let records = input[1].split_once(':').unwrap().1.trim().split_whitespace().map(|v| {
-        v.parse().unwrap()
-    }).collect();
+    let times = input[0]
+        .split_once(':')
+        .unwrap()
+        .1
+        .trim()
+        .split_whitespace()
+        .map(|v| v.parse().unwrap())
+        .collect();
+    let records = input[1]
+        .split_once(':')
+        .unwrap()
+        .1
+        .trim()
+        .split_whitespace()
+        .map(|v| v.parse().unwrap())
+        .collect();
 
     (times, records)
 }
 
 fn parse2(input: &Vec<String>) -> (u64, u64) {
-    let time = input[0].split_once(':').unwrap().1.trim().chars().filter(|c| {
-        !c.is_whitespace()
-    }).collect::<String>().parse().unwrap();
-    let record = input[1].split_once(':').unwrap().1.trim().chars().filter(|c| {
-        !c.is_whitespace()
-    }).collect::<String>().parse().unwrap();
+    let time = input[0]
+        .split_once(':')
+        .unwrap()
+        .1
+        .trim()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .parse()
+        .unwrap();
+    let record = input[1]
+        .split_once(':')
+        .unwrap()
+        .1
+        .trim()
+        .chars()
+        .filter(|c| !c.is_whitespace())
+        .collect::<String>()
+        .parse()
+        .unwrap();
 
     (time, record)
 }
