@@ -9,11 +9,15 @@ fn main() {
     for h in &hands {
         //println!("{:?}", h);
     }
-    let result: u64 = hands.iter().enumerate().map(|(i, c)| {
-        let ret = (i + 1) as u64 * c.bet;
-        //println!("{},{ret}", i + 1);
-        ret
-    }).sum();
+    let result: u64 = hands
+        .iter()
+        .enumerate()
+        .map(|(i, c)| {
+            let ret = (i + 1) as u64 * c.bet;
+            //println!("{},{ret}", i + 1);
+            ret
+        })
+        .sum();
 
     println!("Part 1: {}", result);
 }
@@ -28,7 +32,11 @@ fn parse(input: &Vec<String>) -> Vec<Hand> {
         }
         let bet = bet.trim().parse().unwrap();
         let hand_type = (&cards).try_into().unwrap();
-        ret.push(Hand { bet, cards, hand_type })
+        ret.push(Hand {
+            bet,
+            cards,
+            hand_type,
+        })
     }
     ret
 }
@@ -108,7 +116,6 @@ impl PartialEq for Hand {
     }
 }
 
-
 #[derive(Debug, PartialEq, Eq, PartialOrd, Ord, Clone, Copy)]
 enum Card {
     CJ,
@@ -126,7 +133,7 @@ enum Card {
     CA,
 }
 
-impl Into<usize>for Card {
+impl Into<usize> for Card {
     fn into(self) -> usize {
         match self {
             Card::CJ => 0,
@@ -180,5 +187,15 @@ fn test_card_ordering() {
 fn test_hand_ordering() {
     let hand1 = [Card::C2, Card::C2, Card::C2, Card::C2, Card::C2];
     let hand2 = [Card::C3, Card::C3, Card::C2, Card::C2, Card::C2];
-    assert!(Hand { hand_type: HandType::Five, cards: hand1, bet: 0 } > Hand { hand_type: HandType::FullHouse, cards: hand2, bet: 0 })
+    assert!(
+        Hand {
+            hand_type: HandType::Five,
+            cards: hand1,
+            bet: 0
+        } > Hand {
+            hand_type: HandType::FullHouse,
+            cards: hand2,
+            bet: 0
+        }
+    )
 }
