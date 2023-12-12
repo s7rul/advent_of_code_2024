@@ -1,4 +1,4 @@
-use std::{fmt::Display, time::Instant};
+use std::{fmt::Display, time::Instant, collections::HashMap};
 
 use advent_of_code_2022::read_input_to_vec;
 
@@ -11,9 +11,11 @@ fn main() {
     //let one = spring_rows[5].solve1();
     //todo!();
 
+    let mut cache = HashMap::new();
+
     let mut sum = 0;
     for r in &spring_rows {
-        let result = r.solve1();
+        let result = r.solve(&mut cache);
         //println!("result: {result}");
         sum += result;
     }
@@ -21,17 +23,16 @@ fn main() {
 
     let mut sum = 0;
     for r in &spring_rows {
-        let result = r.unfold().solve1();
+        let result = r.unfold().solve(&mut cache);
         //println!("result: {result}");
         sum += result;
-        println!("{sum}");
     }
     println!("part 2: {sum}");
 
     println!("time: {:?}", time.elapsed());
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Hash, PartialEq, Eq)]
 struct SimpleRow {
     springs: Vec<SpringCondition>,
     ds_numbers: Vec<u64>,
@@ -58,7 +59,7 @@ impl SimpleRow {
         SimpleRow { springs: new_springs, ds_numbers: new_numbers }
     }
 
-    fn solve1(&self) -> u64 {
+    fn solve(&self, cache: &mut HashMap<Self, u128>) -> u128 {
         let mut unknown = vec![];
         for (i, s) in self.springs.iter().enumerate() {
             match s {
@@ -66,7 +67,7 @@ impl SimpleRow {
                 _ => (),
             }
         }
-        self.get_no_solutions(&unknown)
+        self.get_no_solutions(cache)
     }
 
     fn is_valid(&self) -> Option<bool> {
@@ -117,32 +118,57 @@ impl SimpleRow {
         }
     }
 
-    fn get_no_solutions(&self, unknowns: &[usize]) -> u64 {
-        match self.is_valid() {
-            Some(v) => {
-                if v {
-                    1
-                } else {
-                    0
-                }
-            },
-            None => {
-                let mut op_springs = self.springs.clone();
-                op_springs[unknowns[0]] = SpringCondition::Operational;
-                let operatioanl = SimpleRow {
-                    springs: op_springs,
-                    ds_numbers: self.ds_numbers.clone(),
-                };
-                let mut dm_springs = self.springs.clone();
-                dm_springs[unknowns[0]] = SpringCondition::Damaged;
-                let damaged = SimpleRow {
-                    springs: dm_springs,
-                    ds_numbers: self.ds_numbers.clone(),
-                };
-
-                operatioanl.get_no_solutions(&unknowns[1..]) + damaged.get_no_solutions(&unknowns[1..])
-            },
+    // Almost copy of sopby:s solution
+    fn get_no_solutions(&self, cache: &mut HashMap<Self, u128>) -> u128 {
+        if self.springs.is_empty() {
+            if self.ds_numbers.is_empty() {
+                return 1;
+            } else {
+                return 0;
+            }
         }
+
+        match self.springs[0] {
+            SpringCondition::Damaged => self.get_no_damaged_solutions(cache),
+            SpringCondition::Operational => (SimpleRow { springs: self.springs[1..].to_vec(), ds_numbers: self.ds_numbers.clone() }).get_no_solutions(cache),
+            SpringCondition::Unknown => (SimpleRow { springs: self.springs[1..].to_vec(), ds_numbers: self.ds_numbers.clone() }).get_no_solutions(cache) + self.get_no_damaged_solutions(cache),
+        }
+    }
+
+    fn get_no_damaged_solutions(&self, cache: &mut HashMap<Self, u128>) -> u128 {
+        if let Some(result) = cache.get(self) {
+            return *result;
+        }
+
+        if self.ds_numbers.is_empty() {
+            return 0;
+        }
+
+        let ds_number = self.ds_numbers[0];
+        if self.springs.len() < ds_number as usize {
+            return 0;
+        }
+
+        for i in 0..ds_number as usize {
+            if self.springs[i] == SpringCondition::Operational {
+                return 0;
+            }
+        }
+
+        if self.springs.len() == ds_number as usize {
+            if self.ds_numbers.len() == 1 {
+                return 1;
+            } else {
+                return 0;
+            }
+        }
+        if self.springs[ds_number as usize] == SpringCondition::Damaged {
+            return 0;
+        }
+
+        let result = (SimpleRow { springs: self.springs[(ds_number + 1) as usize..].to_vec(), ds_numbers: self.ds_numbers[1..].to_vec() }).get_no_solutions(cache);
+        cache.insert(self.clone(), result);
+        result
     }
 }
 
@@ -174,7 +200,7 @@ impl TryFrom<&String> for SimpleRow {
     }
 }
 
-#[derive(Debug, PartialEq, Eq, Clone)]
+#[derive(Debug, PartialEq, Eq, Clone, Hash)]
 enum SpringCondition {
     Damaged,
     Operational,
