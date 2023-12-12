@@ -1,6 +1,9 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("Day 7");
 
     let input = read_input_to_vec("input/day7.txt");
@@ -19,7 +22,8 @@ fn main() {
         })
         .sum();
 
-    println!("Part 1: {}", result);
+    println!("Part 2: {}", result);
+    println!("time: {:?}", start.elapsed());
 }
 
 fn parse(input: &Vec<String>) -> Vec<Hand> {

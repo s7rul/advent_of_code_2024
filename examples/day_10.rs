@@ -1,4 +1,4 @@
-use std::{usize, collections::HashSet};
+use std::{collections::HashSet, time::Instant, usize};
 
 use advent_of_code_2022::read_input_to_vec;
 
@@ -7,7 +7,12 @@ fn test_ex3_part2() {
     let input = read_input_to_vec("input/day10_test3.txt");
     let map = parse(&input);
     let result = find_loop(&map);
-    let start = find_start(&(map.map[0].len(), map.map.len()), &map, &result.1, &result.2);
+    let start = find_start(
+        &(map.map[0].len(), map.map.len()),
+        &map,
+        &result.1,
+        &result.2,
+    );
     let result = find_contained(&(map.map[0].len(), map.map.len()), &result.1, start);
     assert_eq!(result, 4);
 }
@@ -17,7 +22,12 @@ fn test_ex4_part2() {
     let input = read_input_to_vec("input/day10_test4.txt");
     let map = parse(&input);
     let result = find_loop(&map);
-    let start = find_start(&(map.map[0].len(), map.map.len()), &map, &result.1, &result.2);
+    let start = find_start(
+        &(map.map[0].len(), map.map.len()),
+        &map,
+        &result.1,
+        &result.2,
+    );
     let result = find_contained(&(map.map[0].len(), map.map.len()), &result.1, start);
     assert_eq!(result, 8);
 }
@@ -27,7 +37,12 @@ fn test_ex5_part2() {
     let input = read_input_to_vec("input/day10_test5.txt");
     let map = parse(&input);
     let result = find_loop(&map);
-    let start = find_start(&(map.map[0].len(), map.map.len()), &map, &result.1, &result.2);
+    let start = find_start(
+        &(map.map[0].len(), map.map.len()),
+        &map,
+        &result.1,
+        &result.2,
+    );
     let result = find_contained(&(map.map[0].len(), map.map.len()), &result.1, start);
     assert_eq!(result, 10);
 }
@@ -37,12 +52,18 @@ fn test_ex6_part2() {
     let input = read_input_to_vec("input/day10_test6.txt");
     let map = parse(&input);
     let result = find_loop(&map);
-    let start = find_start(&(map.map[0].len(), map.map.len()), &map, &result.1, &result.2);
+    let start = find_start(
+        &(map.map[0].len(), map.map.len()),
+        &map,
+        &result.1,
+        &result.2,
+    );
     let result = find_contained(&(map.map[0].len(), map.map.len()), &result.1, start);
     assert_eq!(result, 4);
 }
 
 fn main() {
+    let time = Instant::now();
     println!("Day 10");
     let input = read_input_to_vec("input/day10.txt");
     let map = parse(&input);
@@ -52,9 +73,15 @@ fn main() {
     let start = find_start(&(map.map[0].len(), map.map.len()), &map, &tiles, &dir);
     let result = find_contained(&(map.map[0].len(), map.map.len()), &tiles, start);
     println!("part2: {result}");
+    println!("time: {:?}", time.elapsed());
 }
 
-fn add_to_start(start: &mut Vec<(usize, usize)>, map: &Map, to_add: (usize, usize), in_loop: &HashSet<(usize, usize)>) {
+fn add_to_start(
+    start: &mut Vec<(usize, usize)>,
+    map: &Map,
+    to_add: (usize, usize),
+    in_loop: &HashSet<(usize, usize)>,
+) {
     if to_add.0 >= map.map[0].len() || to_add.1 >= map.map.len() {
         return;
     }
@@ -63,7 +90,12 @@ fn add_to_start(start: &mut Vec<(usize, usize)>, map: &Map, to_add: (usize, usiz
     }
 }
 
-fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>, dir: &Dir) -> Vec<(usize, usize)> {
+fn find_start(
+    dim: &(usize, usize),
+    map: &Map,
+    in_loop: &HashSet<(usize, usize)>,
+    dir: &Dir,
+) -> Vec<(usize, usize)> {
     let mut start_right = vec![];
     let mut start_left = vec![];
     let (mut x, mut y) = map.start;
@@ -75,10 +107,10 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
     loop {
         if x == last_x && y == last_y {
             (x, y) = match dir {
-                Dir::S => (x, y+1),
+                Dir::S => (x, y + 1),
                 Dir::E => (x + 1, y),
                 Dir::W => (x - 1, y),
-                Dir::N => (x, y-1),
+                Dir::N => (x, y - 1),
             };
         } else {
             let n = (x, y - 1);
@@ -97,7 +129,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::W) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x + 1, y), in_loop);
                         add_to_start(&mut start_right, map, (x - 1, y), in_loop);
@@ -111,7 +143,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::W) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x - 1, y), in_loop);
                         add_to_start(&mut start_right, map, (x + 1, y), in_loop);
@@ -119,7 +151,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 Part::EW => {
                     if (last_x, last_y) == e {
                         match looking {
@@ -130,7 +162,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x, y + 1), in_loop);
                         add_to_start(&mut start_right, map, (x, y - 1), in_loop);
@@ -144,7 +176,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x, y - 1), in_loop);
                         add_to_start(&mut start_right, map, (x, y + 1), in_loop);
@@ -152,7 +184,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 Part::NE => {
                     if (last_x, last_y) == n {
                         match looking {
@@ -163,7 +195,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_right, map, (x - 1, y), in_loop);
                         add_to_start(&mut start_right, map, (x, y + 1), in_loop);
@@ -178,7 +210,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x - 1, y), in_loop);
                         add_to_start(&mut start_left, map, (x, y + 1), in_loop);
@@ -187,7 +219,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 Part::NW => {
                     if (last_x, last_y) == n {
                         match looking {
@@ -198,7 +230,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x + 1, y), in_loop);
                         add_to_start(&mut start_left, map, (x, y + 1), in_loop);
@@ -213,7 +245,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::S) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_right, map, (x + 1, y), in_loop);
                         add_to_start(&mut start_right, map, (x, y + 1), in_loop);
@@ -222,7 +254,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 Part::SW => {
                     if (last_x, last_y) == w {
                         match looking {
@@ -233,7 +265,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::N) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x, y - 1), in_loop);
                         add_to_start(&mut start_left, map, (x + 1, y), in_loop);
@@ -248,7 +280,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::N) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_right, map, (x, y - 1), in_loop);
                         add_to_start(&mut start_right, map, (x + 1, y), in_loop);
@@ -257,7 +289,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 Part::SE => {
                     if (last_x, last_y) == e {
                         match looking {
@@ -268,7 +300,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::N) {
                                     looking = Some(Looking::Right);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_right, map, (x, y - 1), in_loop);
                         add_to_start(&mut start_right, map, (x - 1, y), in_loop);
@@ -283,7 +315,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                                 } else if probe(map, in_loop, (x, y), Dir::N) {
                                     looking = Some(Looking::Left);
                                 }
-                            },
+                            }
                         }
                         add_to_start(&mut start_left, map, (x, y - 1), in_loop);
                         add_to_start(&mut start_left, map, (x - 1, y), in_loop);
@@ -292,7 +324,7 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
                     } else {
                         panic!()
                     }
-                },
+                }
                 _ => {
                     panic!()
                 }
@@ -308,10 +340,13 @@ fn find_start(dim: &(usize, usize), map: &Map, in_loop: &HashSet<(usize, usize)>
         },
         None => todo!(),
     }
-
 }
 
-fn find_contained(dim: &(usize, usize), in_loop: &HashSet<(usize, usize)>, start: Vec<(usize, usize)>) -> u64 {
+fn find_contained(
+    dim: &(usize, usize),
+    in_loop: &HashSet<(usize, usize)>,
+    start: Vec<(usize, usize)>,
+) -> u64 {
     let mut explore = start;
 
     let mut visited: HashSet<(usize, usize)> = HashSet::new();
@@ -343,11 +378,15 @@ fn find_contained(dim: &(usize, usize), in_loop: &HashSet<(usize, usize)>, start
 }
 
 enum Looking {
-    Left, Right
+    Left,
+    Right,
 }
 
 enum Dir {
-    N, S, E, W
+    N,
+    S,
+    E,
+    W,
 }
 
 fn probe(map: &Map, in_loop: &HashSet<(usize, usize)>, start: (usize, usize), dir: Dir) -> bool {
@@ -359,7 +398,7 @@ fn probe(map: &Map, in_loop: &HashSet<(usize, usize)>, start: (usize, usize), di
                 }
             }
             true
-        },
+        }
         Dir::S => {
             for y in start.1 + 1..map.map.len() {
                 if in_loop.contains(&(start.0, y)) {
@@ -367,7 +406,7 @@ fn probe(map: &Map, in_loop: &HashSet<(usize, usize)>, start: (usize, usize), di
                 }
             }
             true
-        },
+        }
         Dir::E => {
             for x in start.0 + 1..map.map[0].len() {
                 if in_loop.contains(&(x, start.1)) {
@@ -375,7 +414,7 @@ fn probe(map: &Map, in_loop: &HashSet<(usize, usize)>, start: (usize, usize), di
                 }
             }
             true
-        },
+        }
         Dir::W => {
             for x in 0..start.0 {
                 if in_loop.contains(&(x, start.1)) {
@@ -383,7 +422,7 @@ fn probe(map: &Map, in_loop: &HashSet<(usize, usize)>, start: (usize, usize), di
                 }
             }
             true
-        },
+        }
     }
 }
 
@@ -400,11 +439,11 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
             in_loop.clear();
             in_loop.insert((x, y));
             (x, y) = match dir {
-                0 => (x, y+1),
+                0 => (x, y + 1),
                 1 => (x + 1, y),
                 2 => (x - 1, y),
-                3 => (x, y-1),
-                _ => panic!()
+                3 => (x, y - 1),
+                _ => panic!(),
             };
         } else {
             in_loop.insert((x, y));
@@ -427,7 +466,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 Part::EW => {
                     if (last_x, last_y) == e {
                         w
@@ -441,7 +480,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 Part::NE => {
                     if (last_x, last_y) == n {
                         e
@@ -455,7 +494,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 Part::NW => {
                     if (last_x, last_y) == n {
                         w
@@ -469,7 +508,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 Part::SW => {
                     if (last_x, last_y) == w {
                         s
@@ -483,7 +522,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 Part::SE => {
                     if (last_x, last_y) == e {
                         s
@@ -497,7 +536,7 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
                         last_y = y;
                         (x, y)
                     }
-                },
+                }
                 _ => {
                     i = 0;
                     dir += 1;
@@ -512,13 +551,13 @@ fn find_loop(map: &Map) -> (u64, HashSet<(usize, usize)>, Dir) {
         }
         i += 1;
     }
-    
+
     let dir = match dir {
         0 => Dir::S,
         1 => Dir::E,
         2 => Dir::W,
         3 => Dir::N,
-        _ => panic!()
+        _ => panic!(),
     };
 
     (i - 1, in_loop, dir)
@@ -557,15 +596,15 @@ impl TryFrom<char> for Part {
 
     fn try_from(value: char) -> Result<Self, Self::Error> {
         match value {
-            '|' => Ok(Part::NS), //is a vertical pipe connecting north and south.
-            '-' => Ok(Part::EW), //is a horizontal pipe connecting east and west.
-            'L' => Ok(Part::NE), //is a 90-degree bend connecting north and east.
-            'J' => Ok(Part::NW), //is a 90-degree bend connecting north and west.
-            '7' => Ok(Part::SW), //is a 90-degree bend connecting south and west.
-            'F' => Ok(Part::SE), //is a 90-degree bend connecting south and east.
+            '|' => Ok(Part::NS),     //is a vertical pipe connecting north and south.
+            '-' => Ok(Part::EW),     //is a horizontal pipe connecting east and west.
+            'L' => Ok(Part::NE),     //is a 90-degree bend connecting north and east.
+            'J' => Ok(Part::NW),     //is a 90-degree bend connecting north and west.
+            '7' => Ok(Part::SW),     //is a 90-degree bend connecting south and west.
+            'F' => Ok(Part::SE),     //is a 90-degree bend connecting south and east.
             '.' => Ok(Part::Ground), //is ground; there is no pipe in this tile.
             'S' => Ok(Part::Animal), //is the starting position of the animal;
-            _ => Err("Not a part.")
+            _ => Err("Not a part."),
         }
     }
 }

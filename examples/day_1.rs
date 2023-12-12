@@ -1,8 +1,11 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
     println!("day 1");
 
+    let start = Instant::now();
     let input = read_input_to_vec("input/day1.txt");
 
     let mut sum = 0u64;
@@ -67,7 +70,8 @@ fn main() {
         sum += number;
     }
 
-    println!("Part2: {sum}")
+    println!("Part2: {sum}");
+    println!("time: {:?}", start.elapsed());
 }
 
 fn string_to_number(input: &str) -> Option<u64> {

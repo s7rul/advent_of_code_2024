@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 fn validate_part1(games: &Vec<Game>) -> u32 {
@@ -67,6 +69,7 @@ fn calculate_min_powers_sum(games: &Vec<Game>) -> u32 {
 }
 
 fn main() {
+    let start = Instant::now();
     println!("day 2");
     //let input = read_input_to_vec("input/day2_test.txt");
     let input = read_input_to_vec("input/day2.txt");
@@ -79,6 +82,7 @@ fn main() {
     let part1 = validate_part1(&games);
     println!("part1: {}", part1);
     println!("part2: {}", calculate_min_powers_sum(&games));
+    println!("time: {:?}", start.elapsed());
 }
 
 fn parse(input: &str) -> Game {

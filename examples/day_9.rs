@@ -1,6 +1,9 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("Day 9");
     let input = read_input_to_vec("input/day9.txt");
     let data = parse(&input);
@@ -8,6 +11,7 @@ fn main() {
     println!("Part1: {result}");
     let result = part2(&data);
     println!("Part2: {result}");
+    println!("time: {:?}", start.elapsed());
 }
 
 fn check_zeroes(input: &Vec<i64>) -> bool {

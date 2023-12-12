@@ -1,8 +1,12 @@
-use std::collections::{HashMap, HashSet};
+use std::{
+    collections::{HashMap, HashSet},
+    time::Instant,
+};
 
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("Day 8");
     let input = read_input_to_vec("input/day8.txt");
     let (directions, map) = parse(&input);
@@ -11,6 +15,7 @@ fn main() {
     let (starting, directions, map) = parse2(&input);
     let result = part2(&starting, &directions, &map);
     println!("part 2: {result}");
+    println!("time: {:?}", start.elapsed());
 }
 
 fn check_end2(keys: &Vec<String>) -> bool {

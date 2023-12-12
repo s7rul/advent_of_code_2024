@@ -1,8 +1,9 @@
-use std::collections::HashMap;
+use std::{collections::HashMap, time::Instant};
 
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("day 5");
     let input = read_input_to_vec("input/day5.txt");
     let (seeds, maps) = parse(&input);
@@ -42,6 +43,7 @@ fn main() {
         .min()
         .unwrap();
     println!("Part 2: {result}");
+    println!("Time: {:?}", start.elapsed());
 }
 
 fn parse(input: &Vec<String>) -> (Vec<i64>, Vec<Map>) {

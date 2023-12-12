@@ -1,3 +1,5 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 type EngineMap = Vec<Vec<char>>;
@@ -227,6 +229,7 @@ fn find_gear_ratios(engine_map: &EngineMap) -> Vec<u32> {
 }
 
 fn main() {
+    let start = Instant::now();
     println!("Day 3");
     let input = read_input_to_vec("input/day3.txt");
 
@@ -241,4 +244,5 @@ fn main() {
     let gear_ratios = find_gear_ratios(&engine_map);
     let sum: u32 = gear_ratios.iter().sum();
     println!("part2: {}", sum);
+    println!("time: {:?}", start.elapsed());
 }

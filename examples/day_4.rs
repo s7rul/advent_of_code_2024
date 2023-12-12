@@ -1,8 +1,9 @@
-use std::collections::HashSet;
+use std::{collections::HashSet, time::Instant};
 
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("Day 4");
     let input = read_input_to_vec("input/day4.txt");
 
@@ -32,6 +33,7 @@ fn main() {
 
     let sum: u32 = owned_cards.iter().sum();
     println!("part 2: {}", sum);
+    println!("time: {:?}", start.elapsed());
 }
 
 impl Card {

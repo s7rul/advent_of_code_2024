@@ -1,6 +1,9 @@
+use std::time::Instant;
+
 use advent_of_code_2022::read_input_to_vec;
 
 fn main() {
+    let start = Instant::now();
     println!("Day 6");
     let input = read_input_to_vec("input/day6.txt");
     let (times, records) = parse(&input);
@@ -14,11 +17,9 @@ fn main() {
 
     let (time, record) = parse2(&input);
 
-    println!("time: {time}");
-    println!("record: {record}");
-
     let result = get_no_winning_strategies(time, record);
     println!("Part 2: {result}");
+    println!("time: {:?}", start.elapsed());
 }
 
 fn parse(input: &Vec<String>) -> (Vec<u64>, Vec<u64>) {
