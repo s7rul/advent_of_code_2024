@@ -1,4 +1,4 @@
-use std::{fmt::Display, time::Instant, collections::HashMap};
+use std::{collections::HashMap, fmt::Display, time::Instant};
 
 use advent_of_code_2022::read_input_to_vec;
 
@@ -39,7 +39,6 @@ struct SimpleRow {
 }
 
 impl SimpleRow {
-
     fn unfold(&self) -> SimpleRow {
         let mut new_springs = vec![];
         let mut new_numbers = vec![];
@@ -47,7 +46,7 @@ impl SimpleRow {
             for s in &self.springs {
                 new_springs.push(s.clone());
             }
-            
+
             if i != 4 {
                 new_springs.push(SpringCondition::Unknown);
             }
@@ -56,7 +55,10 @@ impl SimpleRow {
                 new_numbers.push(*n)
             }
         }
-        SimpleRow { springs: new_springs, ds_numbers: new_numbers }
+        SimpleRow {
+            springs: new_springs,
+            ds_numbers: new_numbers,
+        }
     }
 
     fn solve(&self, cache: &mut HashMap<Self, u128>) -> u128 {
@@ -130,8 +132,19 @@ impl SimpleRow {
 
         match self.springs[0] {
             SpringCondition::Damaged => self.get_no_damaged_solutions(cache),
-            SpringCondition::Operational => (SimpleRow { springs: self.springs[1..].to_vec(), ds_numbers: self.ds_numbers.clone() }).get_no_solutions(cache),
-            SpringCondition::Unknown => (SimpleRow { springs: self.springs[1..].to_vec(), ds_numbers: self.ds_numbers.clone() }).get_no_solutions(cache) + self.get_no_damaged_solutions(cache),
+            SpringCondition::Operational => (SimpleRow {
+                springs: self.springs[1..].to_vec(),
+                ds_numbers: self.ds_numbers.clone(),
+            })
+            .get_no_solutions(cache),
+            SpringCondition::Unknown => {
+                (SimpleRow {
+                    springs: self.springs[1..].to_vec(),
+                    ds_numbers: self.ds_numbers.clone(),
+                })
+                .get_no_solutions(cache)
+                    + self.get_no_damaged_solutions(cache)
+            }
         }
     }
 
@@ -166,7 +179,11 @@ impl SimpleRow {
             return 0;
         }
 
-        let result = (SimpleRow { springs: self.springs[(ds_number + 1) as usize..].to_vec(), ds_numbers: self.ds_numbers[1..].to_vec() }).get_no_solutions(cache);
+        let result = (SimpleRow {
+            springs: self.springs[(ds_number + 1) as usize..].to_vec(),
+            ds_numbers: self.ds_numbers[1..].to_vec(),
+        })
+        .get_no_solutions(cache);
         cache.insert(self.clone(), result);
         result
     }

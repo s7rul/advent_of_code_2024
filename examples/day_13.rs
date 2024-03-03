@@ -7,32 +7,28 @@ fn main() {
     println!("Day 13");
 
     let input = read_input_file("input/day13.txt");
-    let patterns: Vec<Pattern> = input.split("\n\n").map(|p| {
-        p.lines().collect::<Vec<&str>>().try_into().unwrap()
-    }).collect();
+    let patterns: Vec<Pattern> = input
+        .split("\n\n")
+        .map(|p| p.lines().collect::<Vec<&str>>().try_into().unwrap())
+        .collect();
 
-    let mut sum: u128 = 0;
-    for pattern in &patterns {
-        let reflection = pattern.find_refection();
-        sum += match reflection {
+    let sum = (&patterns).iter().fold(0, |acc, p| {
+        acc + match p.find_refection() {
             Reflection::Row(_, x) => x,
             Reflection::Col(_, y) => y * 100,
-        } as u128;
-    }
+        } as u128
+    });
 
     println!("Part 1: {sum}");
 
-    let mut sum: u128 = 0;
-    for pattern in &patterns {
-        let reflection = pattern.find_refection_with_smudge();
-        sum += match reflection {
+    let sum = (&patterns).iter().fold(0, |acc, p| {
+        acc + match p.find_refection_with_smudge() {
             Reflection::Row(_, x) => x,
             Reflection::Col(_, y) => y * 100,
-        } as u128;
-    }
+        } as u128
+    });
 
     println!("Part 2: {sum}");
-
 
     println!("time: {:?}", time.elapsed());
 }
@@ -45,7 +41,8 @@ enum Reflection {
 
 #[derive(Debug, PartialEq, Eq, Clone, Copy)]
 enum Tile {
-    Ash, Rock
+    Ash,
+    Rock,
 }
 
 impl TryFrom<char> for Tile {
@@ -64,7 +61,6 @@ impl TryFrom<char> for Tile {
 struct Pattern {
     map: Vec<Vec<Tile>>,
 }
-
 
 fn check_row(row: &Vec<Tile>, i: usize) -> bool {
     for x in 0..=i {
@@ -104,7 +100,7 @@ impl Pattern {
                 }
             }
 
-            return Reflection::Row(x, x+1);
+            return Reflection::Row(x, x + 1);
         }
 
         let mut cols = vec![];
@@ -123,7 +119,7 @@ impl Pattern {
                 }
             }
 
-            return Reflection::Col(y, y+1);
+            return Reflection::Col(y, y + 1);
         }
         panic!()
     }
@@ -141,7 +137,7 @@ impl Pattern {
             }
 
             if errors == 1 {
-                return Reflection::Row(x, x+1);
+                return Reflection::Row(x, x + 1);
             }
         }
 
@@ -164,7 +160,7 @@ impl Pattern {
             }
 
             if errors == 1 {
-                return Reflection::Col(y, y+1);
+                return Reflection::Col(y, y + 1);
             }
         }
         panic!()
@@ -187,6 +183,6 @@ impl TryFrom<Vec<&str>> for Pattern {
             ret.push(row);
         }
 
-        Ok(Pattern {map: ret})
+        Ok(Pattern { map: ret })
     }
 }
