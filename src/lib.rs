@@ -17,7 +17,7 @@ pub fn read_input_to_vec(path: &str) -> Vec<String> {
     ret
 }
 
-pub fn read_input_to_vec_str<'a>(path: &'a str) -> Vec<String> {
+pub fn read_input_to_vec_str(path: &str) -> Vec<String> {
     read_input_file(path)
         .lines()
         .map(|x| x.to_owned())
