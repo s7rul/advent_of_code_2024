@@ -3,10 +3,6 @@ name = "advent_of_code_2024"
 version = "0.1.0"
 edition = "2021"
 
-# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
-
 [dependencies]
-regex = "1.10.2"
-
-[profile.release]
-debug = true
+aoc-runner = "0.3.0"
+aoc-runner-derive = "0.3.0"
