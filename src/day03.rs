@@ -22,29 +22,9 @@ pub enum Instruction {
     Dont,
 }
 
-#[aoc_generator(day3, part1)]
-pub fn generator(input: &str) -> Vec<String> {
-    let min_length = 7;
-    let max_length = 13;
 
-    let mut ret = vec![];
-
-    for start in 0..(input.len() - min_length) {
-        for end in (start + min_length)..=(start + max_length) {
-            if end >= input.len() {
-                break;
-            }
-            if is_valid_mul_instruction(&input[start..=end]) {
-                ret.push(input[start..=end].to_string());
-            }
-        }
-    }
-
-    ret
-}
-
-#[aoc_generator(day3, part2)]
-pub fn generator2(input: &str) -> Vec<Instruction> {
+#[aoc_generator(day3)]
+pub fn generator(input: &str) -> Vec<Instruction> {
     let min_length = 3;
     let max_length = 13;
 
@@ -96,12 +76,12 @@ pub fn solve_part2(input: &[Instruction]) -> i32 {
 }
 
 #[aoc(day3, part1)]
-pub fn solve_part1(input: &[String]) -> i32 {
+pub fn solve_part1(input: &[Instruction]) -> i32 {
     let mut sum = 0;
     for ist in input {
-        let mid = &ist[4..(ist.len() - 1)];
-        let nums: Vec<i32> = mid.split(',').map(|d| d.parse().unwrap()).collect();
-        sum += nums[0] * nums[1];
+        if let Instruction::Mul(x, y) = ist {
+            sum += x * y;
+        }
     }
     sum
 }
@@ -117,7 +97,7 @@ fn test_1() {
 
 #[test]
 fn test_2() {
-    let gen = &generator2("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
+    let gen = &generator("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
     println!("{:?}", gen);
     let result = solve_part2(gen);
     assert_eq!(result, 48);
