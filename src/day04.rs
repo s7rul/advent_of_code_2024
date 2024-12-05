@@ -83,11 +83,7 @@ pub fn solve_part1(input: &[Vec<char>]) -> i32 {
     // search down
     for x in 0..input[0].len() {
         for y in 0..(input.len() - 3) {
-            let mut window = vec![];
-            window.push(input[y][x]);
-            window.push(input[y + 1][x]);
-            window.push(input[y + 2][x]);
-            window.push(input[y + 3][x]);
+            let window = vec![ input[y][x], input[y + 1][x], input[y + 2][x], input[y + 3][x]];
             if is_windown_xmas_forward(&window) {
                 sum += 1;
             }
@@ -101,11 +97,7 @@ pub fn solve_part1(input: &[Vec<char>]) -> i32 {
     // diag 1
     for y in 0..(input.len() - 3) {
         for x in 0..(input[0].len() - 3) {
-            let mut window = vec![];
-            window.push(input[y][x]);
-            window.push(input[y + 1][x + 1]);
-            window.push(input[y + 2][x + 2]);
-            window.push(input[y + 3][x + 3]);
+            let window = vec![input[y][x], input[y + 1][x + 1], input[y + 2][x + 2], input[y + 3][x + 3]];
             if is_windown_xmas_forward(&window) {
                 sum += 1;
             }
@@ -118,11 +110,7 @@ pub fn solve_part1(input: &[Vec<char>]) -> i32 {
     // diag 2
     for y in 0..(input.len() - 3) {
         for x in 3..input[0].len() {
-            let mut window = vec![];
-            window.push(input[y][x]);
-            window.push(input[y + 1][x - 1]);
-            window.push(input[y + 2][x - 2]);
-            window.push(input[y + 3][x - 3]);
+            let window = vec![input[y][x], input[y + 1][x - 1], input[y + 2][x - 2], input[y + 3][x - 3]];
             if is_windown_xmas_forward(&window) {
                 sum += 1;
             }
@@ -203,7 +191,7 @@ S...M....S
     assert_eq!(result, 3);
 }
 
-//#[test]
+#[test]
 fn test5() {
     let input = "X.........
 .M........
