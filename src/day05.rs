@@ -1,4 +1,4 @@
-use std::collections::HashMap;
+use std::collections::{HashMap, HashSet};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -14,7 +14,7 @@ pub struct PuzzleInput {
     pages: Vec<Vec<u32>>,
 }
 
-#[aoc_generator(day5, part1)]
+#[aoc_generator(day5)]
 pub fn generator(input: &str) -> PuzzleInput {
     let mut in_pages = false;
     let mut rules: HashMap<u32, Vec<u32>> = HashMap::new();
@@ -78,9 +78,9 @@ pub fn solve_part1(input: &PuzzleInput) -> u32 {
     sum
 }
 
-fn is_valid(pages: &[u32], rules: &HashMap<u32, Vec<(u32, Rule)>>) -> (bool, Vec<Rule>) {
+fn is_valid(pages: &[u32], rules: &HashMap<u32, Vec<u32>>) -> (bool, HashMap<u32, Vec<u32>>) {
     let mut must_contain: Vec<u32> = vec![];
-    let mut affected_rules: Vec<Rule> = vec![];
+    let mut affected_rules = HashMap::new();
     for n in pages {
         let mut del_i = vec![];
         for i in 0..must_contain.len() {
@@ -94,9 +94,9 @@ fn is_valid(pages: &[u32], rules: &HashMap<u32, Vec<(u32, Rule)>>) -> (bool, Vec
 
         match rules.get(n) {
             Some(v) => for x in v {
-                if pages.iter().find(|v| **v==x.0).is_some() {
-                    must_contain.push(x.0);
-                    affected_rules.push(x.1.clone());
+                if pages.iter().find(|v| **v==*x).is_some() {
+                    must_contain.push(*x);
+                    affected_rules.insert(*n, v.clone());
                 }
             },
             None => (),
@@ -105,40 +105,44 @@ fn is_valid(pages: &[u32], rules: &HashMap<u32, Vec<(u32, Rule)>>) -> (bool, Vec
     (must_contain.is_empty(), affected_rules)
 }
 
-#[aoc_generator(day5, part2)]
-pub fn generator2(input: &str) -> PuzzleInput2 {
-    let mut in_pages = false;
-    let mut rules: HashMap<u32, Vec<(u32, Rule)>> = HashMap::new();
-    let mut pages = vec![];
-    for l in input.lines() {
-        if l.is_empty() {
-            in_pages = true;
-            continue;
+fn find_next(remaining: &HashSet<u32>, affected_rules: &HashMap<u32, Vec<u32>>) -> Option<u32> {
+    'rem: for n in remaining {
+        for r in affected_rules.iter() {
+            for after in r.1 {
+                if *after == *n {
+                    continue 'rem;
+                }
+            }
         }
-
-        if in_pages {
-            pages.push(l.split(',').map(|v| v.parse().unwrap()).collect());
-        } else {
-            let in_l: Vec<u32> = l.split('|').map(|v| v.parse().unwrap()).collect();
-
-            let r = rules.entry(in_l[0]).or_insert(vec![]);
-            r.push((in_l[1], Rule { first: in_l[0], secound: in_l[1] }));
-        }
+        return Some(*n);
     }
-    PuzzleInput2 { rules, pages }
-}
-#[derive(Debug, Clone)]
-pub struct PuzzleInput2 {
-    rules: HashMap<u32, Vec<(u32, Rule)>>,
-    pages: Vec<Vec<u32>>,
+    None
 }
 
 #[aoc(day5, part2)]
-pub fn solve_part2(input: &PuzzleInput2) -> u32 {
+pub fn solve_part2(input: &PuzzleInput) -> u32 {
     let mut fixed = vec![];
     for p in &input.pages {
-        let (valid, affected_rules) = is_valid(p, &input.rules);
+        let (valid, mut affected_rules) = is_valid(p, &input.rules);
         if !valid {
+            let mut fixed_version = vec![];
+            let mut remaining: HashSet<u32> = HashSet::new();
+            for n in p {
+                remaining.insert(*n);
+            }
+
+            'outer: for _ in 0..p.len() {
+                match find_next(&remaining, &affected_rules) {
+                    Some(v) => {
+                        remaining.remove(&v);
+                        affected_rules.remove(&v);
+                        fixed_version.push(v);
+                    },
+                    None => panic!(),
+                }
+            }
+
+            fixed.push(fixed_version);
         }
     }
 
@@ -153,7 +157,7 @@ pub fn solve_part2(input: &PuzzleInput2) -> u32 {
 
 #[test]
 pub fn test2() {
-    let input = generator2("47|53
+    let input = generator("47|53
 97|13
 97|61
 97|47
