@@ -100,7 +100,6 @@ pub fn solve_part2(input: &Map) -> usize {
             }
         }
     }
-    println!("antinodes: {:?}", antinodes);
     antinodes.len()
 }
 
@@ -185,7 +184,7 @@ fn calculate_antinodes_with_harmonics(max_x: i32, max_y: i32, first: &Antenna, s
             i += 1;
         }
     }
-    rei
+    ret
 }
 
 #[test]
