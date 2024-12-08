@@ -36,26 +36,6 @@ impl Calibration {
         false
     }
 
-    fn is_valid_optimized(&self) -> bool {
-        'out: for n in 0..(2_u64.pow(self.numbers.len() as u32 - 1)) {
-            let mut result = self.numbers[0];
-            for i in 1..self.numbers.len() {
-                if (n & (1 << (i - 1))) > 0 {
-                    result *= self.numbers[i];
-                } else {
-                    result += self.numbers[i];
-                }
-                if result > self.result {
-                    continue 'out;
-                }
-            }
-            if result == self.result {
-                return true;
-            }
-        }
-        false
-    }
-
     fn is_valid_2(&self) -> bool {
         for mut n in 0..(3_u64.pow(self.numbers.len() as u32 - 1)) {
             let mut result = self.numbers[0];
@@ -71,31 +51,6 @@ impl Calibration {
                     _ => panic!("should not get here"),
                 };
                 n /= 3;
-            }
-            if result == self.result {
-                return true;
-            }
-        }
-        false
-    }
-
-    fn is_valid_2_optimized(&self) -> bool {
-        'out: for n in 0..(4_u64.pow(self.numbers.len() as u32 - 1)) {
-            let mut result = self.numbers[0];
-            for i in 1..self.numbers.len() {
-                let o = n >> (2 * (i - 1)) & 3;
-                if o == 0 {
-                    result *= self.numbers[i];
-                } else if o == 1 {
-                    result += self.numbers[i];
-                } else {
-                    let mut inter = result.to_string();
-                    inter.push_str(&self.numbers[i].to_string());
-                    result = inter.parse().unwrap();
-                }
-                if result > self.result {
-                    continue 'out;
-                }
             }
             if result == self.result {
                 return true;
@@ -119,29 +74,11 @@ pub fn solve_part1(input: &[Calibration]) -> u64 {
         .sum()
 }
 
-#[aoc(day7, part1, optimized)]
-pub fn solve_part1_optimized(input: &[Calibration]) -> u64 {
-    input
-        .iter()
-        .filter(|c| c.is_valid_optimized())
-        .map(|c| c.result)
-        .sum()
-}
-
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &[Calibration]) -> u64 {
     input
         .iter()
         .filter(|c| c.is_valid_2())
-        .map(|c| c.result)
-        .sum()
-}
-
-#[aoc(day7, part2, optimized)]
-pub fn solve_part2_optimized(input: &[Calibration]) -> u64 {
-    input
-        .iter()
-        .filter(|c| c.is_valid_2_optimized())
         .map(|c| c.result)
         .sum()
 }
@@ -187,24 +124,9 @@ fn full_test_1_1() {
 }
 
 #[test]
-fn full_test_1_2() {
-    let input = fs::read_to_string("input/2024/day7.txt").unwrap();
-    let input = generator(&input);
-    let result = solve_part1_optimized(&input);
-    assert_eq!(result, 303876485655);
-}
-
-#[test]
 fn full_test_2_1() {
     let input = fs::read_to_string("input/2024/day7.txt").unwrap();
     let input = generator(&input);
     let result = solve_part2(&input);
-    assert_eq!(result, 146111650210682);
-}
-#[test]
-fn full_test_2_2() {
-    let input = fs::read_to_string("input/2024/day7.txt").unwrap();
-    let input = generator(&input);
-    let result = solve_part2_optimized(&input);
     assert_eq!(result, 146111650210682);
 }
