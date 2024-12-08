@@ -12,7 +12,10 @@ impl Calibration {
     fn parse(input: &str) -> Calibration {
         let (result, nums) = input.split_once(':').unwrap();
         let result: u64 = result.parse().unwrap();
-        let numbers: Vec<u64> = nums.split_whitespace().map(|v| v.parse().unwrap()).collect();
+        let numbers: Vec<u64> = nums
+            .split_whitespace()
+            .map(|v| v.parse().unwrap())
+            .collect();
         Calibration { result, numbers }
     }
 
@@ -20,7 +23,7 @@ impl Calibration {
         for n in 0..(2_u64.pow(self.numbers.len() as u32 - 1)) {
             let mut result = self.numbers[0];
             for i in 1..self.numbers.len() {
-                if (n & (1<<(i - 1))) > 0 {
+                if (n & (1 << (i - 1))) > 0 {
                     result *= self.numbers[i];
                 } else {
                     result += self.numbers[i];
@@ -37,7 +40,7 @@ impl Calibration {
         'out: for n in 0..(2_u64.pow(self.numbers.len() as u32 - 1)) {
             let mut result = self.numbers[0];
             for i in 1..self.numbers.len() {
-                if (n & (1<<(i - 1))) > 0 {
+                if (n & (1 << (i - 1))) > 0 {
                     result *= self.numbers[i];
                 } else {
                     result += self.numbers[i];
@@ -65,7 +68,7 @@ impl Calibration {
                         inter.push_str(&self.numbers[i].to_string());
                         inter.parse().unwrap()
                     }
-                    _ => panic!("should not get here")
+                    _ => panic!("should not get here"),
                 };
                 n /= 3;
             }
@@ -77,23 +80,22 @@ impl Calibration {
     }
 
     fn is_valid_2_optimized(&self) -> bool {
-        'out: for mut n in 0..(3_u64.pow(self.numbers.len() as u32 - 1)) {
+        'out: for n in 0..(4_u64.pow(self.numbers.len() as u32 - 1)) {
             let mut result = self.numbers[0];
             for i in 1..self.numbers.len() {
-                result = match n % 3 {
-                    0 => result + self.numbers[i],
-                    1 => result * self.numbers[i],
-                    2 => {
-                        let mut inter = result.to_string();
-                        inter.push_str(&self.numbers[i].to_string());
-                        inter.parse().unwrap()
-                    }
-                    _ => panic!("should not get here")
-                };
+                let o = n >> (2 * (i - 1)) & 3;
+                if o == 0 {
+                    result *= self.numbers[i];
+                } else if o == 1 {
+                    result += self.numbers[i];
+                } else {
+                    let mut inter = result.to_string();
+                    inter.push_str(&self.numbers[i].to_string());
+                    result = inter.parse().unwrap();
+                }
                 if result > self.result {
                     continue 'out;
                 }
-                n /= 3;
             }
             if result == self.result {
                 return true;
@@ -110,22 +112,38 @@ pub fn generator(input: &str) -> Vec<Calibration> {
 
 #[aoc(day7, part1)]
 pub fn solve_part1(input: &[Calibration]) -> u64 {
-    input.iter().filter(|c| c.is_valid()).map(|c| c.result).sum()
+    input
+        .iter()
+        .filter(|c| c.is_valid())
+        .map(|c| c.result)
+        .sum()
 }
 
 #[aoc(day7, part1, optimized)]
 pub fn solve_part1_optimized(input: &[Calibration]) -> u64 {
-    input.iter().filter(|c| c.is_valid_optimized()).map(|c| c.result).sum()
+    input
+        .iter()
+        .filter(|c| c.is_valid_optimized())
+        .map(|c| c.result)
+        .sum()
 }
 
 #[aoc(day7, part2)]
 pub fn solve_part2(input: &[Calibration]) -> u64 {
-    input.iter().filter(|c| c.is_valid_2()).map(|c| c.result).sum()
+    input
+        .iter()
+        .filter(|c| c.is_valid_2())
+        .map(|c| c.result)
+        .sum()
 }
 
 #[aoc(day7, part2, optimized)]
 pub fn solve_part2_optimized(input: &[Calibration]) -> u64 {
-    input.iter().filter(|c| c.is_valid_2_optimized()).map(|c| c.result).sum()
+    input
+        .iter()
+        .filter(|c| c.is_valid_2_optimized())
+        .map(|c| c.result)
+        .sum()
 }
 
 #[test]

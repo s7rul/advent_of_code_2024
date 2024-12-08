@@ -9,14 +9,17 @@ pub fn generator(input: &str) -> Vec<Vec<char>> {
 
 #[derive(PartialEq, Eq, Hash, Clone, Copy)]
 enum Direction {
-    Up, Down, Left, Right
+    Up,
+    Down,
+    Left,
+    Right,
 }
 
 fn get_next(pos: &(i32, i32), dir: Direction) -> (i32, i32) {
     match dir {
-        Direction::Up    => (pos.0 - 1, pos.1),
-        Direction::Down  => (pos.0 + 1, pos.1),
-        Direction::Left  => (pos.0, pos.1 - 1),
+        Direction::Up => (pos.0 - 1, pos.1),
+        Direction::Down => (pos.0 + 1, pos.1),
+        Direction::Left => (pos.0, pos.1 - 1),
         Direction::Right => (pos.0, pos.1 + 1),
     }
 }
@@ -123,7 +126,6 @@ pub fn solve_part2_1(input: &[Vec<char>]) -> usize {
         guard_pos = next_pos;
     }
 
-
     let max_l = input.len() as i32;
     let max_c = input[0].len() as i32;
 
@@ -175,7 +177,6 @@ pub fn solve_part2_1(input: &[Vec<char>]) -> usize {
 
 #[aoc(day6, part2, brute_force)]
 pub fn solve_part2(input: &[Vec<char>]) -> usize {
-
     // find guard
     let mut guard_start: (i32, i32) = (0, 0);
 
@@ -221,7 +222,11 @@ pub fn solve_part2(input: &[Vec<char>]) -> usize {
                 while input[next_pos.0 as usize][next_pos.1 as usize] == '#' {
                     guard_dir = rotate(guard_dir);
                     next_pos = get_next(&guard_pos, guard_dir);
-                    if next_pos.0 >= max_l || next_pos.1 >= max_c || next_pos.0 < 0 || next_pos.1 < 0 {
+                    if next_pos.0 >= max_l
+                        || next_pos.1 >= max_c
+                        || next_pos.0 < 0
+                        || next_pos.1 < 0
+                    {
                         break 'out false;
                     }
                 }
@@ -237,4 +242,3 @@ pub fn solve_part2(input: &[Vec<char>]) -> usize {
 
     sum
 }
-

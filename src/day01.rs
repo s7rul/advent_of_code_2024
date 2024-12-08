@@ -40,8 +40,12 @@ pub fn solve_part2(input: &(Vec<i32>, Vec<i32>)) -> i32 {
     let mut num_of_num: HashMap<i32, i32> = HashMap::new();
     for n in right {
         match num_of_num.get(&n) {
-            Some(v) => {num_of_num.insert(n, v+1);},
-            None => {num_of_num.insert(n, 1);},
+            Some(v) => {
+                num_of_num.insert(n, v + 1);
+            }
+            None => {
+                num_of_num.insert(n, 1);
+            }
         }
     }
 

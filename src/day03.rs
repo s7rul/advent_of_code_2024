@@ -22,7 +22,6 @@ pub enum Instruction {
     Dont,
 }
 
-
 #[aoc_generator(day3)]
 pub fn generator(input: &str) -> Vec<Instruction> {
     let min_length = 3;
@@ -67,7 +66,11 @@ pub fn solve_part2(input: &[Instruction]) -> i32 {
     let mut enable = true;
     for ist in input {
         match ist {
-            Instruction::Mul(x, y) => if enable {sum += x * y},
+            Instruction::Mul(x, y) => {
+                if enable {
+                    sum += x * y
+                }
+            }
             Instruction::Do => enable = true,
             Instruction::Dont => enable = false,
         }
@@ -97,7 +100,8 @@ fn test_1() {
 
 #[test]
 fn test_2() {
-    let gen = &generator("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
+    let gen =
+        &generator("xmul(2,4)&mul[3,7]!^don't()_mul(5,5)+mul(32,64](mul(11,8)undo()?mul(8,5))");
     println!("{:?}", gen);
     let result = solve_part2(gen);
     assert_eq!(result, 48);

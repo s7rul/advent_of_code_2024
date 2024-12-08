@@ -2,10 +2,16 @@ use aoc_runner_derive::{aoc, aoc_generator};
 
 #[aoc_generator(day2)]
 pub fn generator(input: &str) -> Vec<Vec<i32>> {
-    input.lines().map(|l| {
-        let repport = l.split_whitespace().map(|n| {n.parse::<i32>().unwrap()}).collect();
-        repport
-    }).collect()
+    input
+        .lines()
+        .map(|l| {
+            let repport = l
+                .split_whitespace()
+                .map(|n| n.parse::<i32>().unwrap())
+                .collect();
+            repport
+        })
+        .collect()
 }
 
 #[aoc(day2, part1)]
@@ -89,4 +95,3 @@ pub fn solve_part2(input: &[Vec<i32>]) -> i32 {
 //pub fn solve_part2(input: &str) -> i32 {
 //    0
 //}
-

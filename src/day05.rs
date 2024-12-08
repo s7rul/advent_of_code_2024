@@ -55,11 +55,13 @@ pub fn solve_part1(input: &PuzzleInput) -> u32 {
             }
 
             match input.rules.get(n) {
-                Some(v) => for x in v {
-                    if p.iter().find(|v| **v==*x).is_some() {
-                        must_contain.push(*x);
+                Some(v) => {
+                    for x in v {
+                        if p.iter().find(|v| **v == *x).is_some() {
+                            must_contain.push(*x);
+                        }
                     }
-                },
+                }
                 None => (),
             }
         }
@@ -71,7 +73,7 @@ pub fn solve_part1(input: &PuzzleInput) -> u32 {
 
     let mut sum = 0;
     for vlid in valid_prints {
-        let middle = vlid[vlid.len()/2];
+        let middle = vlid[vlid.len() / 2];
         sum += middle;
     }
 
@@ -93,12 +95,14 @@ fn is_valid(pages: &[u32], rules: &HashMap<u32, Vec<u32>>) -> (bool, HashMap<u32
         }
 
         match rules.get(n) {
-            Some(v) => for x in v {
-                if pages.iter().find(|v| **v==*x).is_some() {
-                    must_contain.push(*x);
-                    affected_rules.insert(*n, v.clone());
+            Some(v) => {
+                for x in v {
+                    if pages.iter().find(|v| **v == *x).is_some() {
+                        must_contain.push(*x);
+                        affected_rules.insert(*n, v.clone());
+                    }
                 }
-            },
+            }
             None => (),
         }
     }
@@ -137,7 +141,7 @@ pub fn solve_part2(input: &PuzzleInput) -> u32 {
                         remaining.remove(&v);
                         affected_rules.remove(&v);
                         fixed_version.push(v);
-                    },
+                    }
                     None => panic!(),
                 }
             }
@@ -148,7 +152,7 @@ pub fn solve_part2(input: &PuzzleInput) -> u32 {
 
     let mut sum = 0;
     for vlid in fixed {
-        let middle = vlid[vlid.len()/2];
+        let middle = vlid[vlid.len() / 2];
         sum += middle;
     }
 
@@ -157,7 +161,8 @@ pub fn solve_part2(input: &PuzzleInput) -> u32 {
 
 #[test]
 pub fn test2() {
-    let input = generator("47|53
+    let input = generator(
+        "47|53
 97|13
 97|61
 97|47
@@ -184,14 +189,16 @@ pub fn test2() {
 75,29,13
 75,97,47,61,53
 61,13,29
-97,13,75,29,47");
+97,13,75,29,47",
+    );
     let result = solve_part2(&input);
     assert_eq!(result, 123);
 }
 
 #[test]
 pub fn test1() {
-    let input = generator("47|53
+    let input = generator(
+        "47|53
 97|13
 97|61
 97|47
@@ -218,7 +225,8 @@ pub fn test1() {
 75,29,13
 75,97,47,61,53
 61,13,29
-97,13,75,29,47");
+97,13,75,29,47",
+    );
     let result = solve_part1(&input);
     assert_eq!(result, 143);
 }
