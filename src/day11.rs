@@ -1,5 +1,5 @@
 #![allow(clippy::comparison_chain)]
-use std::{collections::HashMap, usize};
+use std::collections::HashMap;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
