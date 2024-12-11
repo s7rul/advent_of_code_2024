@@ -1,5 +1,5 @@
 #![allow(clippy::comparison_chain)]
-use std::usize;
+use std::{collections::HashMap, usize};
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -44,35 +44,34 @@ pub fn solve_part1(input: &[u64]) -> usize {
     stones.len()
 }
 
+fn recursive(input: u64, blink: u64, memory: &mut HashMap<(u64, u64), usize>) -> usize {
+    if blink == 75 {
+        1
+    } else if let Some(v) = memory.get(&(input, blink)) {
+        *v
+    } else {
+        let result = if input == 0 {
+            recursive(1, blink + 1, memory)
+        } else {
+            let digits = count_digits(input);
+            if digits % 2 == 0 {
+                recursive(input / 10_u64.pow(digits as u32 / 2), blink + 1, memory) +
+                recursive(input % 10_u64.pow(digits as u32 / 2), blink + 1, memory)
+            } else {
+                recursive(input * 2024, blink + 1, memory)
+            }
+        };
+        memory.insert((input, blink), result);
+        result
+    }
+}
+
 #[aoc(day11, part2)]
 pub fn solve_part2(input: &[u64]) -> usize {
     let mut sum = 0;
+    let mut memory = HashMap::new();
     for (n, s) in input.iter().enumerate() {
-        let mut stones = vec![*s];
-        for _ in 0..75 {
-            let mut i = 0;
-            while i < stones.len() {
-                let stone = stones[i];
-                if stone == 0 {
-                    stones[i] = 1;
-                    i += 1;
-                } else {
-                    let digits = count_digits(stone);
-                    if digits % 2 == 0 {
-                        let left = stone / 10_u64.pow(digits as u32 / 2);
-                        let right = stone % 10_u64.pow(digits as u32 / 2);
-                        stones[i] = right;
-                        stones.insert(i, left);
-                        i += 2;
-                    } else {
-                        stones[i] = stone * 2024;
-                        i += 1;
-                    }
-                }
-            }
-        }
-        sum += stones.len();
-        println!("n: {n} sum: {sum}");
+        sum += recursive(*s, 0, &mut memory);
     }
     sum
 }
