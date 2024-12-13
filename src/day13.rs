@@ -34,32 +34,6 @@ impl Machine {
         }
     }
 
-    fn possible_solutions(&self) -> Vec<u64> {
-        let mut solutions = vec![];
-
-        for a in 0..100 {
-            for b in 0..100 {
-                let x = a * self.button_a.x + b * self.button_b.x;
-                let y = a * self.button_a.y + b * self.button_b.y;
-
-                if x == self.price.x && y == self.price.y {
-                    solutions.push((a * 3 + b) as u64);
-                }
-            }
-        }
-
-        solutions
-    }
-
-    fn lowest_price(&self) -> u64 {
-        let solutions = self.possible_solutions();
-        let min = solutions.iter().min();
-        match min {
-            Some(v) => *v,
-            None => 0,
-        }
-    }
-
     fn lowest_price_constant(&self) -> u64 {
         let upper = self.price.y * self.button_a.x - self.price.x * self.button_a.y;
         let lower = self.button_b.y * self.button_a.x - self.button_b.x * self.button_a.y;
@@ -93,7 +67,7 @@ impl Machine {
 
 #[aoc_generator(day13, part1)]
 pub fn generator(input: &str) -> Vec<Machine> {
-    input.split("\n\n").map(|v| Machine::from_str(v)).collect()
+    input.split("\n\n").map(Machine::from_str).collect()
 }
 
 #[aoc_generator(day13, part2)]
