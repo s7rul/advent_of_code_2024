@@ -74,13 +74,19 @@ pub fn generator(input: &str) -> Map {
     Map { maze, start }
 }
 
-fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<Position>, position: Position) {
+fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<(Position, Orientation)>, position: Position) {
     for (y, r) in maze.iter().enumerate() {
         for (x, t) in r.iter().enumerate() {
             if position == (Position { x, y }) {
                 print!("R");
-            } else if visited.contains(&Position { x, y }) {
-                print!("x");
+            } else if visited.contains(&(Position { x, y }, Orientation::Up)) {
+                print!("^");
+            } else if visited.contains(&(Position { x, y }, Orientation::Down)) {
+                print!("v");
+            } else if visited.contains(&(Position { x, y }, Orientation::Left)) {
+                print!("<");
+            } else if visited.contains(&(Position { x, y }, Orientation::Right)) {
+                print!(">");
             } else {
                 match t {
                     Tile::Empty => print!("."),
@@ -94,7 +100,12 @@ fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<Position>, position: Positio
     println!();
 }
 
-fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation, mut visited: HashSet<(Position, Orientation)>, cache: &mut HashMap<(Position, Orientation), (bool, u32)>, fork_count: &mut u32) -> (bool, u32) {
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+enum PathResult {
+    Found, DeadEnd, Loop
+}
+
+fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation, mut visited: HashSet<Position>, cache: &mut HashMap<(Position, Orientation), (PathResult, u32)>, fork_count: &mut u32) -> (PathResult, u32) {
     // find next junction
     let mut local_score = 0;
 
@@ -105,14 +116,13 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
     let pos_start = pos;
     let orientation_start = orientation;
 
-    *fork_count += 1;
     //println!("fork count: {fork_count}");
 
     loop {
-        if visited.contains(&(pos, orientation)) {
-            return (false, 0);
+        if visited.contains(&pos) {
+            return (PathResult::Loop, 0);
         }
-        visited.insert((pos, orientation));
+        visited.insert(pos);
         //print_maze(maze, &visited, pos);
         // look around
         // counterclokwise, forward, clockwise
@@ -126,15 +136,18 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
         let mut possible = vec![];
         match around {
             (Tile::End, _, _) => {
-                return (true, local_score + 1001)
+                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1001));
+                return (PathResult::Found, local_score + 1001)
             },
             (_, Tile::End, _) => {
-                return (true, local_score + 1)
+                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1));
+                return (PathResult::Found, local_score + 1)
             },
             (_, _, Tile::End) => {
-                return (true, local_score + 1001)
+                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1001));
+                return (PathResult::Found, local_score + 1001)
             },
-            (Tile::Wall, Tile::Wall, Tile::Wall) => return (false, 0),
+            (Tile::Wall, Tile::Wall, Tile::Wall) => return (PathResult::DeadEnd, 0),
             (Tile::Empty, Tile::Wall, Tile::Wall) => {
                 local_score += 1001;
                 orientation.rotate_counterclockwise();
@@ -156,7 +169,6 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
                     let new = find_end(maze, pos_new, orientation,  visited.clone(), cache, fork_count);
                     possible.push((new.0, local_score + new.1 + 1));
                 }
-
                 if vcc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
@@ -165,7 +177,6 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
                     let new = find_end(maze, pos_new, orientation_new,  visited.clone(), cache, fork_count);
                     possible.push((new.0, local_score + new.1 + 1001));
                 }
-
                 if vc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
@@ -179,19 +190,26 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
 
         if !possible.is_empty() {
             let mut min = u32::MAX;
+            let mut any_loop = false;
             let mut all_false = true;
             for (p, v) in possible {
-                if p {
+                if p == PathResult::Found {
                     all_false = false;
                     min = min.min(v);
+                } else if p == PathResult::Loop {
+                    any_loop = true;
                 }
             }
-            let result = if all_false {
-                (false, 0)
+            let result = if all_false && any_loop {
+                (PathResult::Loop, 0)
+            } else if all_false && !any_loop {
+                (PathResult::DeadEnd, 0)
             } else {
-                (true, min)
+                (PathResult::Found, min)
             };
-            cache.insert((pos_start, orientation_start), result);
+            if !any_loop {
+                cache.insert((pos_start, orientation_start), result);
+            }
             return result;
         }
     }
@@ -201,7 +219,11 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
 pub fn solve_part1(input: &Map) -> u32 {
     let mut fork_count = 0;
     let mut visited = HashMap::new();
-    find_end(&input.maze, input.start, Orientation::Right, HashSet::new(), &mut visited, &mut fork_count).1
+    let result = find_end(&input.maze, input.start, Orientation::Right, HashSet::new(), &mut visited, &mut fork_count).1;
+    for cashe in visited {
+        println!("position: x: {} y: {} orientation: {:?} value: {:?}", cashe.0.0.x, cashe.0.0.y, cashe.0.1, cashe.1);
+    }
+    result
 }
 
 #[test]
@@ -275,4 +297,91 @@ fn test_1_4() {
     println!("start: {:?}", input.start);
     let reusult = solve_part1(&input);
     assert_eq!(2007, reusult);
+}
+
+#[test]
+fn test_1_5() {
+    let input = generator("###########################
+#######################..E#
+######################..#.#
+#####################..##.#
+####################..###.#
+###################..##...#
+##################..###.###
+#################..####...#
+################..#######.#
+###############..##.......#
+##############..###.#######
+#############..####.......#
+############..###########.#
+###########..##...........#
+##########..###.###########
+#########..####...........#
+########..###############.#
+#######..##...............#
+######..###.###############
+#####..####...............#
+####..###################.#
+###..##...................#
+##..###.###################
+#..####...................#
+#.#######################.#
+#S........................#
+###########################");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part1(&input);
+    assert_eq!(21148, reusult);
+}
+
+#[test]
+fn test_1_6() {
+    let input = generator("####################################################
+#......................................#..........E#
+#......................................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.................#...........#
+#....................#.............................#
+#S...................#.............................#
+####################################################");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part1(&input);
+    assert_eq!(5078, reusult);
+}
+
+#[test]
+fn test_1_7() {
+    let input = generator(
+"####################
+#...........#.....E#
+#...........#......#
+#.....#.....#......#
+#.....#.....#......#
+#.....#.....#......#
+#.....#............#
+#S....#............#
+####################");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part1(&input);
+    assert_eq!(5031, reusult);
+}
+
+#[test]
+fn test_1_8() {
+    let input = generator(
+"#########
+#.......#
+#.......#
+#...#...#
+#...#...#
+#S..#..E#
+#########");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part1(&input);
+    assert_eq!(3012, reusult);
 }
