@@ -74,51 +74,27 @@ pub fn generator(input: &str) -> Map {
     Map { maze, start }
 }
 
-fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<Position>) {
-    for (y, r) in maze.iter().enumerate() {
-        for (x, t) in r.iter().enumerate() {
-            if visited.contains(&Position { x, y }) {
-                print!("O");
-            } else {
-                match t {
-                    Tile::Empty => print!("."),
-                    Tile::Wall => print!("#"),
-                    Tile::End => print!("E"),
-                }
-            }
-        }
-        println!();
-    }
-    println!();
-}
-
 struct ListNode {
-    score: u32,
-    position: Position,
-    orientation: Orientation,
-}
-
-struct ListNode2 {
     score: u32,
     position: Position,
     orientation: Orientation,
     visited: HashSet<Position>,
 }
 
-struct SortedNodeList2 {
-    list: Vec<ListNode2>
+struct SortedNodeList {
+    list: Vec<ListNode>
 }
 
-impl SortedNodeList2 {
+impl SortedNodeList {
     fn new() -> Self {
         Self { list: vec![] }
     }
 
-    fn get_next(&mut self) -> ListNode2 {
+    fn get_next(&mut self) -> ListNode {
         self.list.pop().unwrap()
     }
 
-    fn find(&mut self, item: &ListNode2) -> Option<(usize, &mut ListNode2)> {
+    fn find(&mut self, item: &ListNode) -> Option<(usize, &mut ListNode)> {
         for (i, n) in self.list.iter_mut().enumerate() {
             if n.position == item.position {
                 return Some((i, n));
@@ -127,7 +103,7 @@ impl SortedNodeList2 {
         None
     }
 
-    fn insert(&mut self, item: ListNode2) {
+    fn insert(&mut self, item: ListNode) {
         if let Some((i, node)) = self.find(&item) {
             if node.score > item.score {
                 self.list.remove(i);
@@ -149,108 +125,12 @@ impl SortedNodeList2 {
     }
 }
 
-struct SortedNodeList {
-    list: Vec<ListNode>
-}
 
-impl SortedNodeList {
-    fn new() -> Self {
-        Self { list: vec![] }
-    }
 
-    fn get_next(&mut self) -> ListNode {
-        self.list.pop().unwrap()
-    }
 
-    fn find(&self, item: &ListNode) -> Option<(usize, &ListNode)> {
-        for (i, n) in self.list.iter().enumerate() {
-            if n.position == item.position {
-                return Some((i, n));
-            }
-        }
-        None
-    }
-
-    fn insert(&mut self, item: ListNode) {
-        if let Some((i, node)) = self.find(&item) {
-            if node.score > item.score {
-                self.list.remove(i);
-            } else {
-                return;
-            }
-        }
-
-        for (i, n) in self.list.iter().enumerate() {
-            if item.score > n.score {
-                self.list.insert(i, item);
-                return;
-            }
-        }
-        self.list.push(item);
-    }
-}
-
-fn find_end(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> u32 {
+fn find_end(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> ListNode {
     let mut next_list = SortedNodeList::new();
-    next_list.insert(ListNode { score: 0, position: pos, orientation});
-
-    loop {
-        let next_node = next_list.get_next();
-        let score = next_node.score;
-        let pos = next_node.position;
-        let orientation = next_node.orientation;
-
-        let around = match orientation {
-            Orientation::Up => (maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x], maze[pos.y][pos.x +1]),
-            Orientation::Down => (maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x], maze[pos.y][pos.x - 1]),
-            Orientation::Left => (maze[pos.y + 1][pos.x], maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x]),
-            Orientation::Right => (maze[pos.y - 1][pos.x], maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x]),
-        };
-
-        match around {
-            (Tile::End, _, _) => {
-                return score + 1001;
-            },
-            (_, Tile::End, _) => {
-                return score + 1;
-            },
-            (_, _, Tile::End) => {
-                return score + 1001;
-            },
-            (Tile::Wall, Tile::Wall, Tile::Wall) => (),
-            (vcc, vf, vc) => {
-                if vf == Tile::Empty {
-                    let mut pos_new = pos;
-                    pos_new.move_forward(orientation);
-                    next_list.insert(ListNode { score: score + 1, position: pos_new, orientation });
-                }
-                if vcc == Tile::Empty {
-                    let mut pos_new = pos;
-                    let mut orientation_new = orientation;
-                    orientation_new.rotate_counterclockwise();
-                    pos_new.move_forward(orientation_new);
-                    next_list.insert(ListNode {score: score + 1001, position: pos_new, orientation: orientation_new});
-                }
-                if vc == Tile::Empty {
-                    let mut pos_new = pos;
-                    let mut orientation_new = orientation;
-                    orientation_new.rotate_clockwise();
-                    pos_new.move_forward(orientation_new);
-                    next_list.insert(ListNode {score: score + 1001, position: pos_new, orientation: orientation_new});
-                }
-            }
-        }
-    }
-}
-
-#[aoc(day16, part1)]
-pub fn solve_part1(input: &Map) -> u32 {
-    find_end(&input.maze, input.start, Orientation::Right)
-}
-
-fn find_end2(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> ListNode2 {
-    let mut next_list = SortedNodeList2::new();
-    next_list.insert(ListNode2 { score: 0, position: pos, orientation, visited: HashSet::new()});
+    next_list.insert(ListNode { score: 0, position: pos, orientation, visited: HashSet::new()});
 
     loop {
         let mut next_node = next_list.get_next();
@@ -298,31 +178,35 @@ fn find_end2(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> Lis
                 if vf == Tile::Empty {
                     let mut pos_new = pos;
                     pos_new.move_forward(orientation);
-                    next_list.insert(ListNode2 { score: score + 1, position: pos_new, orientation, visited: next_node.visited.clone() });
+                    next_list.insert(ListNode { score: score + 1, position: pos_new, orientation, visited: next_node.visited.clone() });
                 }
                 if vcc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_counterclockwise();
                     pos_new.move_forward(orientation_new);
-                    next_list.insert(ListNode2 { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
+                    next_list.insert(ListNode { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
                 }
                 if vc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_clockwise();
                     pos_new.move_forward(orientation_new);
-                    next_list.insert(ListNode2 { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
+                    next_list.insert(ListNode { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
                 }
             }
         }
     }
 }
 
+#[aoc(day16, part1)]
+pub fn solve_part1(input: &Map) -> u32 {
+    find_end(&input.maze, input.start, Orientation::Right).score
+}
+
 #[aoc(day16, part2)]
-pub fn solve_part2(input: &Map) -> u32 {
-    let result = find_end2(&input.maze, input.start, Orientation::Right);
-    result.visited.len() as u32
+pub fn solve_part2(input: &Map) -> usize {
+    find_end(&input.maze, input.start, Orientation::Right).visited.len()
 }
 
 #[test]
