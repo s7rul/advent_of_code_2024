@@ -1,5 +1,5 @@
 #![allow(clippy::comparison_chain)]
-use std::collections::{HashMap, HashSet};
+use std::collections::HashSet;
 
 use aoc_runner_derive::{aoc, aoc_generator};
 
@@ -100,11 +100,6 @@ fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<(Position, Orientation)>, po
     println!();
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-enum PathResult {
-    Found, DeadEnd, Loop
-}
-
 struct ListNode {
     score: u32,
     position: Position,
@@ -152,15 +147,15 @@ impl SortedNodeList {
     }
 }
 
-fn find_end(maze: &[Vec<Tile>], pos: Position, mut orientation: Orientation) -> u32 {
+fn find_end(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> u32 {
     let mut next_list = SortedNodeList::new();
     next_list.insert(ListNode { score: 0, position: pos, orientation});
 
     loop {
         let next_node = next_list.get_next();
-        let mut score = next_node.score;
-        let mut pos = next_node.position;
-        let mut orientation = next_node.orientation;
+        let score = next_node.score;
+        let pos = next_node.position;
+        let orientation = next_node.orientation;
 
         let around = match orientation {
             Orientation::Up => (maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x], maze[pos.y][pos.x +1]),
@@ -171,16 +166,13 @@ fn find_end(maze: &[Vec<Tile>], pos: Position, mut orientation: Orientation) -> 
 
         match around {
             (Tile::End, _, _) => {
-                score += 1001;
-                return score;
+                return score + 1001;
             },
             (_, Tile::End, _) => {
-                score += 1;
-                return score
+                return score + 1;
             },
             (_, _, Tile::End) => {
-                score += 1001;
-                return score
+                return score + 1001;
             },
             (Tile::Wall, Tile::Wall, Tile::Wall) => (),
             (vcc, vf, vc) => {
@@ -210,8 +202,6 @@ fn find_end(maze: &[Vec<Tile>], pos: Position, mut orientation: Orientation) -> 
 
 #[aoc(day16, part1)]
 pub fn solve_part1(input: &Map) -> u32 {
-    let mut fork_count = u32::MAX;;
-    
     find_end(&input.maze, input.start, Orientation::Right)
 }
 
