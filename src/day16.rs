@@ -105,20 +105,63 @@ enum PathResult {
     Found, DeadEnd, Loop
 }
 
-fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation, mut visited: HashSet<Position>, best_min: &mut u32, mut score: u32) -> Option<u32> {
-    loop {
-        if score > *best_min {
-            println!("to long");
-            return None;
+struct ListNode {
+    score: u32,
+    position: Position,
+    orientation: Orientation,
+}
+
+struct SortedNodeList {
+    list: Vec<ListNode>
+}
+
+impl SortedNodeList {
+    fn new() -> Self {
+        Self { list: vec![] }
+    }
+
+    fn get_next(&mut self) -> ListNode {
+        self.list.pop().unwrap()
+    }
+
+    fn find(&self, item: &ListNode) -> Option<(usize, &ListNode)> {
+        for (i, n) in self.list.iter().enumerate() {
+            if n.position == item.position {
+                return Some((i, n));
+            }
+        }
+        None
+    }
+
+    fn insert(&mut self, item: ListNode) {
+        if let Some((i, node)) = self.find(&item) {
+            if node.score > item.score {
+                self.list.remove(i);
+            } else {
+                return;
+            }
         }
 
-        if visited.contains(&pos) {
-            return None;
+        for (i, n) in self.list.iter().enumerate() {
+            if item.score > n.score {
+                self.list.insert(i, item);
+                return;
+            }
         }
-        visited.insert(pos);
-        //print_maze(maze, &visited, pos);
-        // look around
-        // counterclokwise, forward, clockwise
+        self.list.push(item);
+    }
+}
+
+fn find_end(maze: &[Vec<Tile>], pos: Position, mut orientation: Orientation) -> u32 {
+    let mut next_list = SortedNodeList::new();
+    next_list.insert(ListNode { score: 0, position: pos, orientation});
+
+    loop {
+        let next_node = next_list.get_next();
+        let mut score = next_node.score;
+        let mut pos = next_node.position;
+        let mut orientation = next_node.orientation;
+
         let around = match orientation {
             Orientation::Up => (maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x], maze[pos.y][pos.x +1]),
             Orientation::Down => (maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x], maze[pos.y][pos.x - 1]),
@@ -126,82 +169,41 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
             Orientation::Right => (maze[pos.y - 1][pos.x], maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x]),
         };
 
-        let mut possible = vec![];
         match around {
             (Tile::End, _, _) => {
                 score += 1001;
-                *best_min = (*best_min).min(score);
-                println!("found end score: {score}");
-                return Some(score)
+                return score;
             },
             (_, Tile::End, _) => {
                 score += 1;
-                *best_min = (*best_min).min(score);
-                println!("found end score: {score}");
-                return Some(score)
+                return score
             },
             (_, _, Tile::End) => {
                 score += 1001;
-                *best_min = (*best_min).min(score);
-                println!("found end score: {score}");
-                return Some(score)
+                return score
             },
-            (Tile::Wall, Tile::Wall, Tile::Wall) => return None,
-            (Tile::Empty, Tile::Wall, Tile::Wall) => {
-                score += 1001;
-                orientation.rotate_counterclockwise();
-                pos.move_forward(orientation);
-            }
-            (Tile::Wall, Tile::Empty, Tile::Wall) => {
-                score += 1;
-                pos.move_forward(orientation);
-            }
-            (Tile::Wall, Tile::Wall, Tile::Empty) => {
-                score += 1001;
-                orientation.rotate_clockwise();
-                pos.move_forward(orientation);
-            }
+            (Tile::Wall, Tile::Wall, Tile::Wall) => (),
             (vcc, vf, vc) => {
                 if vf == Tile::Empty {
                     let mut pos_new = pos;
                     pos_new.move_forward(orientation);
-                    let new = find_end(maze, pos_new, orientation,  visited.clone(), best_min, score + 1);
-                    possible.push(new);
+                    next_list.insert(ListNode { score: score + 1, position: pos_new, orientation });
                 }
                 if vcc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_counterclockwise();
                     pos_new.move_forward(orientation_new);
-                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), best_min, score + 1001);
-                    possible.push(new);
+                    next_list.insert(ListNode {score: score + 1001, position: pos_new, orientation: orientation_new});
                 }
                 if vc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_clockwise();
                     pos_new.move_forward(orientation_new);
-                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), best_min, score + 1001);
-                    possible.push(new);
+                    next_list.insert(ListNode {score: score + 1001, position: pos_new, orientation: orientation_new});
                 }
             }
-        }
-
-        if !possible.is_empty() {
-            let mut min = u32::MAX;
-            let mut all_false = true;
-            for p in possible {
-                if let Some(v) = p{
-                    all_false = false;
-                    min = min.min(v);
-                }
-            }
-            let result = if all_false {
-                None
-            } else {
-                Some(min)
-            };
-            return result;
         }
     }
 }
@@ -210,7 +212,7 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
 pub fn solve_part1(input: &Map) -> u32 {
     let mut fork_count = u32::MAX;;
     
-    find_end(&input.maze, input.start, Orientation::Right, HashSet::new(), &mut fork_count, 0).unwrap()
+    find_end(&input.maze, input.start, Orientation::Right)
 }
 
 #[test]
