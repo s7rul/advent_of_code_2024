@@ -105,22 +105,15 @@ enum PathResult {
     Found, DeadEnd, Loop
 }
 
-fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation, mut visited: HashSet<Position>, cache: &mut HashMap<(Position, Orientation), (PathResult, u32)>, fork_count: &mut u32) -> (PathResult, u32) {
-    // find next junction
-    let mut local_score = 0;
-
-    if let Some(result) = cache.get(&(pos, orientation)) {
-        return result.to_owned();
-    }
-    
-    let pos_start = pos;
-    let orientation_start = orientation;
-
-    //println!("fork count: {fork_count}");
-
+fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation, mut visited: HashSet<Position>, best_min: &mut u32, mut score: u32) -> Option<u32> {
     loop {
+        if score > *best_min {
+            println!("to long");
+            return None;
+        }
+
         if visited.contains(&pos) {
-            return (PathResult::Loop, 0);
+            return None;
         }
         visited.insert(pos);
         //print_maze(maze, &visited, pos);
@@ -136,29 +129,35 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
         let mut possible = vec![];
         match around {
             (Tile::End, _, _) => {
-                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1001));
-                return (PathResult::Found, local_score + 1001)
+                score += 1001;
+                *best_min = (*best_min).min(score);
+                println!("found end score: {score}");
+                return Some(score)
             },
             (_, Tile::End, _) => {
-                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1));
-                return (PathResult::Found, local_score + 1)
+                score += 1;
+                *best_min = (*best_min).min(score);
+                println!("found end score: {score}");
+                return Some(score)
             },
             (_, _, Tile::End) => {
-                cache.insert((pos_start, orientation_start), (PathResult::Found, local_score + 1001));
-                return (PathResult::Found, local_score + 1001)
+                score += 1001;
+                *best_min = (*best_min).min(score);
+                println!("found end score: {score}");
+                return Some(score)
             },
-            (Tile::Wall, Tile::Wall, Tile::Wall) => return (PathResult::DeadEnd, 0),
+            (Tile::Wall, Tile::Wall, Tile::Wall) => return None,
             (Tile::Empty, Tile::Wall, Tile::Wall) => {
-                local_score += 1001;
+                score += 1001;
                 orientation.rotate_counterclockwise();
                 pos.move_forward(orientation);
             }
             (Tile::Wall, Tile::Empty, Tile::Wall) => {
-                local_score += 1;
+                score += 1;
                 pos.move_forward(orientation);
             }
             (Tile::Wall, Tile::Wall, Tile::Empty) => {
-                local_score += 1001;
+                score += 1001;
                 orientation.rotate_clockwise();
                 pos.move_forward(orientation);
             }
@@ -166,50 +165,42 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
                 if vf == Tile::Empty {
                     let mut pos_new = pos;
                     pos_new.move_forward(orientation);
-                    let new = find_end(maze, pos_new, orientation,  visited.clone(), cache, fork_count);
-                    possible.push((new.0, local_score + new.1 + 1));
+                    let new = find_end(maze, pos_new, orientation,  visited.clone(), best_min, score + 1);
+                    possible.push(new);
                 }
                 if vcc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_counterclockwise();
                     pos_new.move_forward(orientation_new);
-                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), cache, fork_count);
-                    possible.push((new.0, local_score + new.1 + 1001));
+                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), best_min, score + 1001);
+                    possible.push(new);
                 }
                 if vc == Tile::Empty {
                     let mut pos_new = pos;
                     let mut orientation_new = orientation;
                     orientation_new.rotate_clockwise();
                     pos_new.move_forward(orientation_new);
-                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), cache, fork_count);
-                    possible.push((new.0, local_score + new.1 + 1001));
+                    let new = find_end(maze, pos_new, orientation_new,  visited.clone(), best_min, score + 1001);
+                    possible.push(new);
                 }
             }
         }
 
         if !possible.is_empty() {
             let mut min = u32::MAX;
-            let mut any_loop = false;
             let mut all_false = true;
-            for (p, v) in possible {
-                if p == PathResult::Found {
+            for p in possible {
+                if let Some(v) = p{
                     all_false = false;
                     min = min.min(v);
-                } else if p == PathResult::Loop {
-                    any_loop = true;
                 }
             }
-            let result = if all_false && any_loop {
-                (PathResult::Loop, 0)
-            } else if all_false && !any_loop {
-                (PathResult::DeadEnd, 0)
+            let result = if all_false {
+                None
             } else {
-                (PathResult::Found, min)
+                Some(min)
             };
-            if !any_loop {
-                cache.insert((pos_start, orientation_start), result);
-            }
             return result;
         }
     }
@@ -217,13 +208,9 @@ fn find_end(maze: &[Vec<Tile>], mut pos: Position, mut orientation: Orientation,
 
 #[aoc(day16, part1)]
 pub fn solve_part1(input: &Map) -> u32 {
-    let mut fork_count = 0;
-    let mut visited = HashMap::new();
-    let result = find_end(&input.maze, input.start, Orientation::Right, HashSet::new(), &mut visited, &mut fork_count).1;
-    for cashe in visited {
-        println!("position: x: {} y: {} orientation: {:?} value: {:?}", cashe.0.0.x, cashe.0.0.y, cashe.0.1, cashe.1);
-    }
-    result
+    let mut fork_count = u32::MAX;;
+    
+    find_end(&input.maze, input.start, Orientation::Right, HashSet::new(), &mut fork_count, 0).unwrap()
 }
 
 #[test]
