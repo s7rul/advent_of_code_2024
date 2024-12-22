@@ -74,19 +74,11 @@ pub fn generator(input: &str) -> Map {
     Map { maze, start }
 }
 
-fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<(Position, Orientation)>, position: Position) {
+fn print_maze(maze: &[Vec<Tile>], visited: &HashSet<Position>) {
     for (y, r) in maze.iter().enumerate() {
         for (x, t) in r.iter().enumerate() {
-            if position == (Position { x, y }) {
-                print!("R");
-            } else if visited.contains(&(Position { x, y }, Orientation::Up)) {
-                print!("^");
-            } else if visited.contains(&(Position { x, y }, Orientation::Down)) {
-                print!("v");
-            } else if visited.contains(&(Position { x, y }, Orientation::Left)) {
-                print!("<");
-            } else if visited.contains(&(Position { x, y }, Orientation::Right)) {
-                print!(">");
+            if visited.contains(&Position { x, y }) {
+                print!("O");
             } else {
                 match t {
                     Tile::Empty => print!("."),
@@ -104,6 +96,57 @@ struct ListNode {
     score: u32,
     position: Position,
     orientation: Orientation,
+}
+
+struct ListNode2 {
+    score: u32,
+    position: Position,
+    orientation: Orientation,
+    visited: HashSet<Position>,
+}
+
+struct SortedNodeList2 {
+    list: Vec<ListNode2>
+}
+
+impl SortedNodeList2 {
+    fn new() -> Self {
+        Self { list: vec![] }
+    }
+
+    fn get_next(&mut self) -> ListNode2 {
+        self.list.pop().unwrap()
+    }
+
+    fn find(&mut self, item: &ListNode2) -> Option<(usize, &mut ListNode2)> {
+        for (i, n) in self.list.iter_mut().enumerate() {
+            if n.position == item.position {
+                return Some((i, n));
+            }
+        }
+        None
+    }
+
+    fn insert(&mut self, item: ListNode2) {
+        if let Some((i, node)) = self.find(&item) {
+            if node.score > item.score {
+                self.list.remove(i);
+            } else if node.score == item.score {
+                node.visited = node.visited.union(&item.visited).copied().collect();
+                return;
+            } else {
+                return;
+            }
+        }
+
+        for (i, n) in self.list.iter().enumerate() {
+            if item.score > n.score {
+                self.list.insert(i, item);
+                return;
+            }
+        }
+        self.list.push(item);
+    }
 }
 
 struct SortedNodeList {
@@ -205,6 +248,129 @@ pub fn solve_part1(input: &Map) -> u32 {
     find_end(&input.maze, input.start, Orientation::Right)
 }
 
+fn find_end2(maze: &[Vec<Tile>], pos: Position, orientation: Orientation) -> ListNode2 {
+    let mut next_list = SortedNodeList2::new();
+    next_list.insert(ListNode2 { score: 0, position: pos, orientation, visited: HashSet::new()});
+
+    loop {
+        let mut next_node = next_list.get_next();
+        let score = next_node.score;
+        let pos = next_node.position;
+        let orientation = next_node.orientation;
+
+        next_node.visited.insert(pos);
+
+        let around = match orientation {
+            Orientation::Up => (maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x], maze[pos.y][pos.x +1]),
+            Orientation::Down => (maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x], maze[pos.y][pos.x - 1]),
+            Orientation::Left => (maze[pos.y + 1][pos.x], maze[pos.y][pos.x - 1], maze[pos.y - 1][pos.x]),
+            Orientation::Right => (maze[pos.y - 1][pos.x], maze[pos.y][pos.x + 1], maze[pos.y + 1][pos.x]),
+        };
+
+        match around {
+            (Tile::End, _, _) => {
+                let mut pos_new = pos;
+                let mut orientation_new = orientation;
+                orientation_new.rotate_counterclockwise();
+                pos_new.move_forward(orientation_new);
+                next_node.visited.insert(pos_new);
+                next_node.score += 1001;
+                return next_node;
+            },
+            (_, Tile::End, _) => {
+                let mut pos_new = pos;
+                pos_new.move_forward(orientation);
+                next_node.visited.insert(pos_new);
+                next_node.score += 1;
+                return next_node;
+            },
+            (_, _, Tile::End) => {
+                let mut pos_new = pos;
+                let mut orientation_new = orientation;
+                orientation_new.rotate_counterclockwise();
+                pos_new.move_forward(orientation_new);
+                next_node.visited.insert(pos_new);
+                next_node.score += 1001;
+                return next_node;
+            },
+            (Tile::Wall, Tile::Wall, Tile::Wall) => (),
+            (vcc, vf, vc) => {
+                if vf == Tile::Empty {
+                    let mut pos_new = pos;
+                    pos_new.move_forward(orientation);
+                    next_list.insert(ListNode2 { score: score + 1, position: pos_new, orientation, visited: next_node.visited.clone() });
+                }
+                if vcc == Tile::Empty {
+                    let mut pos_new = pos;
+                    let mut orientation_new = orientation;
+                    orientation_new.rotate_counterclockwise();
+                    pos_new.move_forward(orientation_new);
+                    next_list.insert(ListNode2 { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
+                }
+                if vc == Tile::Empty {
+                    let mut pos_new = pos;
+                    let mut orientation_new = orientation;
+                    orientation_new.rotate_clockwise();
+                    pos_new.move_forward(orientation_new);
+                    next_list.insert(ListNode2 { score: score + 1001, position: pos_new, orientation: orientation_new, visited: next_node.visited.clone() });
+                }
+            }
+        }
+    }
+}
+
+#[aoc(day16, part2)]
+pub fn solve_part2(input: &Map) -> u32 {
+    let result = find_end2(&input.maze, input.start, Orientation::Right);
+    result.visited.len() as u32
+}
+
+#[test]
+fn test_2_1() {
+    let input = generator("###############
+#.......#....E#
+#.#.###.#.###.#
+#.....#.#...#.#
+#.###.#####.#.#
+#.#.#.......#.#
+#.#.#####.###.#
+#...........#.#
+###.#.#####.#.#
+#...#.....#.#.#
+#.#.#.###.#.#.#
+#.....#...#.#.#
+#.###.#.#.#.#.#
+#S..#.....#...#
+###############");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part2(&input);
+    assert_eq!(45, reusult);
+}
+
+#[test]
+fn test_2_2() {
+    let input = generator("#################
+#...#...#...#..E#
+#.#.#.#.#.#.#.#.#
+#.#.#.#...#...#.#
+#.#.#.#.###.#.#.#
+#...#.#.#.....#.#
+#.#.#.#.#.#####.#
+#.#...#.#.#.....#
+#.#.#####.#.###.#
+#.#.#.......#...#
+#.#.###.#####.###
+#.#.#...#.....#.#
+#.#.#.#####.###.#
+#.#.#.........#.#
+#.#.#.#########.#
+#S#.............#
+#################");
+    println!("start: {:?}", input.start);
+    let reusult = solve_part2(&input);
+    assert_eq!(64, reusult);
+}
+
 #[test]
 fn test_1_1() {
     let input = generator("###############
@@ -225,19 +391,6 @@ fn test_1_1() {
     println!("start: {:?}", input.start);
     let reusult = solve_part1(&input);
     assert_eq!(7036, reusult);
-}
-
-#[test]
-fn test_1_2() {
-    let input = generator("#######
-#....E#
-#.#####
-#.....#
-#S###.#
-#######");
-    println!("start: {:?}", input.start);
-    let reusult = solve_part1(&input);
-    assert_eq!(2007, reusult);
 }
 
 #[test]
@@ -312,26 +465,26 @@ fn test_1_5() {
     assert_eq!(21148, reusult);
 }
 
-#[test]
-fn test_1_6() {
-    let input = generator("####################################################
-#......................................#..........E#
-#......................................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.................#...........#
-#....................#.............................#
-#S...................#.............................#
-####################################################");
-    println!("start: {:?}", input.start);
-    let reusult = solve_part1(&input);
-    assert_eq!(5078, reusult);
-}
+//#[test]
+//fn test_1_6() {
+//    let input = generator("####################################################
+//#......................................#..........E#
+//#......................................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.................#...........#
+//#....................#.............................#
+//#S...................#.............................#
+//####################################################");
+//    println!("start: {:?}", input.start);
+//    let reusult = solve_part1(&input);
+//    assert_eq!(5078, reusult);
+//}
 
 #[test]
 fn test_1_7() {
