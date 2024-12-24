@@ -225,36 +225,48 @@ fn partial_compare(buffer: &[u8], program: &[u8]) -> bool {
     }
 }
 
-fn search(input: &Machine, result: i64) -> Option<i64> {
-    todo!()
+fn search(input: &Machine, result: i64, target_i: usize) -> Option<i64> {
+    for i in 0..8 {
+        let mut machine = input.clone();
+        machine.reg_a = i | result;
+        while let Some(ins) = machine.next_instruction() {
+            if !machine.do_instruction(ins) {
+                break;
+            }
+        }
+
+        if machine.output_buffer[0] == input.instruction_memory[target_i] {
+            let new_result = (result | i) << 3;
+            if target_i == 0 {
+                return Some(result | i);
+            } else if let Some(r) = search(input, new_result, target_i - 1) { return Some(r) }
+        }
+    }
+    None
 }
 
 #[aoc(day17, part2)]
 pub fn solve_part2(input: &Machine) -> i64 {
 
-    input.print_program();
-
+    let mut i = 0;
     let mut result = 0;
-
-    for target in input.instruction_memory.iter().rev() {
-        let mut i = 0;
-        loop {
-            assert!(i < 7);
-
-            let mut machine = input.clone();
-            machine.reg_a = i | result;
-            while let Some(ins) = machine.next_instruction() {
-                if !machine.do_instruction(ins) {
-                    break;
-                }
+    loop {
+        let mut machine = input.clone();
+        machine.reg_a = i | result;
+        while let Some(ins) = machine.next_instruction() {
+            if !machine.do_instruction(ins) {
+                break;
             }
-
-            if machine.output_buffer[0] == *target {
-                break
-            }
-            i += 1;
         }
-        result = (result | i) << 3;
+
+        let last_i = input.instruction_memory.len() - 1;
+        if machine.output_buffer[0] == input.instruction_memory[last_i] {
+            if let Some(r) = search(input, i << 3, last_i - 1) {
+                result = r;
+                break;
+            }
+        }
+        i += 1;
     }
 
     let mut machine = input.clone();
