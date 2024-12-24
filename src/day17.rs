@@ -1,6 +1,4 @@
 #![allow(clippy::comparison_chain)]
-use std::collections::HashSet;
-
 use aoc_runner_derive::{aoc, aoc_generator};
 
 #[derive(Clone)]
@@ -13,6 +11,16 @@ pub struct Machine {
     output_buffer: Vec<u8>,
 }
 
+impl Machine {
+    fn print_program(&self) {
+        for i in 0..(self.instruction_memory.len() / 2) {
+            let ins = self.instruction_at(i * 2);
+            println!("{:?}", ins);
+        }
+    }
+}
+
+#[derive(Debug)]
 enum ComboOperand {
     Literal(i64),
     RegA,
@@ -36,6 +44,7 @@ impl ComboOperand {
     }
 }
 
+#[derive(Debug)]
 enum Instruction {
     Adv(ComboOperand),
     Bxl(i64),
@@ -49,9 +58,9 @@ enum Instruction {
 }
 
 impl Machine {
-    fn next_instruction(&self) -> Option<Instruction> {
+    fn instruction_at(&self, i: usize) -> Option<Instruction> {
         let (opcode, operand) = if self.reg_cp < self.instruction_memory.len() - 1 {
-            (self.instruction_memory[self.reg_cp], self.instruction_memory[self.reg_cp + 1])
+            (self.instruction_memory[i], self.instruction_memory[i + 1])
         } else {
             return None;
         };
@@ -68,6 +77,10 @@ impl Machine {
             7 => Instruction::Cdv(ComboOperand::parse(operand)),
             _ => Instruction::Invalid,
         })
+    }
+
+    fn next_instruction(&self) -> Option<Instruction> {
+        self.instruction_at(self.reg_cp)
     }
 
     fn do_instruction(&mut self, ins: Instruction) -> bool {
@@ -171,7 +184,6 @@ pub fn generator(input: &str) -> Machine {
 
     let parts = program_str.split_once(':').unwrap();
     let program_memmory = parts.1.trim().split(',').map(|n| {
-        println!("n: {n}");
         n.parse().unwrap()
     }).collect();
     Machine {
@@ -213,34 +225,52 @@ fn partial_compare(buffer: &[u8], program: &[u8]) -> bool {
     }
 }
 
+fn search(input: &Machine, result: i64) -> Option<i64> {
+    todo!()
+}
+
 #[aoc(day17, part2)]
 pub fn solve_part2(input: &Machine) -> i64 {
-    let mut i = 0;
-    'out: loop {
-        println!("i: {i}");
-        let mut machine = input.clone();
-        //let mut loop_detect = HashSet::new();
-        machine.reg_a = i;
-        while let Some(ins) = machine.next_instruction() {
-            //if loop_detect.contains(&(machine.reg_cp, machine.reg_a, machine.reg_b, machine.reg_c)) {
-            //    i += 1;
-            //    continue 'out;
-            //}
-            //loop_detect.insert((machine.reg_cp, machine.reg_a, machine.reg_b, machine.reg_c));
-            if !machine.do_instruction(ins) {
-                break;
+
+    input.print_program();
+
+    let mut result = 0;
+
+    for target in input.instruction_memory.iter().rev() {
+        let mut i = 0;
+        loop {
+            assert!(i < 7);
+
+            let mut machine = input.clone();
+            machine.reg_a = i | result;
+            while let Some(ins) = machine.next_instruction() {
+                if !machine.do_instruction(ins) {
+                    break;
+                }
             }
-            if !partial_compare(&machine.output_buffer, &machine.instruction_memory) {
-                i += 1;
-                continue 'out;
+
+            if machine.output_buffer[0] == *target {
+                break
             }
+            i += 1;
         }
-        if machine.output_buffer == machine.instruction_memory {
+        result = (result | i) << 3;
+    }
+
+    let mut machine = input.clone();
+    machine.reg_a = result;
+    while let Some(ins) = machine.next_instruction() {
+        if !machine.do_instruction(ins) {
             break;
         }
-        i += 1;
     }
-    i
+    
+    if machine.output_buffer != input.instruction_memory {
+        println!("failed");
+        panic!()
+    }
+
+    result
 }
 
 #[test]
