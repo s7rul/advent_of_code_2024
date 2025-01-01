@@ -53,7 +53,7 @@ fn validate_pattern(towels: &[Towel], pattern: &Pattern, i: usize, cache: &mut H
 pub fn solve_part1(input: &Input) -> i32 {
     let mut sum = 0;
     let mut cache = HashMap::new();
-    for (i, pattern) in input.patterns.iter().enumerate() {
+    for pattern in &input.patterns {
         if validate_pattern(&input.towels, pattern, 0, &mut cache) {
             sum += 1;
         }
