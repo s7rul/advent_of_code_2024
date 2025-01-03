@@ -61,6 +61,60 @@ pub fn solve_part1(input: &Input) -> i32 {
     sum
 }
 
+fn find_all(towels: &[Towel], pattern: &Pattern, i: usize, cache: &mut HashMap<String, u64>) -> u64 {
+    if i >= pattern.len() {
+        return 1;
+    }
+
+    let pattern_string: String = pattern[i..].iter().collect();
+    if let Some(r) = cache.get(&pattern_string) {
+        return *r;
+    }
+
+    let mut sum = 0;
+
+    for t in towels {
+        let t_len = t.len();
+
+        if i + t_len > pattern.len() {
+            continue;
+        }
+
+        if pattern[i..i + t_len] == *t {
+            let result = find_all(towels, pattern, i + t_len, cache);
+            cache.insert(pattern[i + t_len..].iter().collect(), result);
+            sum += result;
+        }
+    }
+    sum
+}
+
+#[aoc(day19, part2)]
+pub fn solve_part2(input: &Input) -> u64 {
+    let mut sum = 0;
+    let mut cache = HashMap::new();
+    for pattern in &input.patterns {
+        sum +=  find_all(&input.towels, pattern, 0, &mut cache);
+    }
+    sum
+}
+
+#[test]
+fn test_2() {
+    let input = generator("r, wr, b, g, bwu, rb, gb, br
+
+brwrr
+bggr
+gbbr
+rrbgbr
+ubwu
+bwurrg
+brgr
+bbrgwb");
+    let result = solve_part2(&input);
+    assert_eq!(16, result);
+}
+
 #[test]
 fn test_1() {
     let input = generator("r, wr, b, g, bwu, rb, gb, br
